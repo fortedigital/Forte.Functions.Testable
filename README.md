@@ -21,6 +21,8 @@ public async Task Can_execute_durable_function()
 }
 ```
 
+Contrast this with the approach suggested in https://docs.microsoft.com/en-us/azure/azure-functions/durable/durable-functions-unit-testing which requires a lot of mocking/setup. 
+
 where MyFunction may look like this:
 
 ```c#
