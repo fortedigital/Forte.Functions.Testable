@@ -21,32 +21,15 @@ public async Task Can_execute_durable_function()
 }
 ```
 
-Contrast this with the approach suggested in https://docs.microsoft.com/en-us/azure/azure-functions/durable/durable-functions-unit-testing which requires a lot of mocking/setup. 
+Tests can use the `WaitForOrchestrationToReachStatus`, `WaitForOrchestrationToExpectEvent` and `RaiseEventAsync` methods on the orchestration client to interact with the durable function.
 
-where MyFunction may look like this:
 
-```c#
-public partial class MyFunction
-{
-    [FunctionName(nameof(DurableFunction))]
-    public static async Task DurableFunction(
-        [OrchestrationTrigger] DurableOrchestrationContextBase context)
-    {
-        var input = context.GetInput<MyFunctionInput>();
-        await context.CallActivityAsync(nameof(SomeActivity), input);
-    }
+Contrast this with the approach suggested in https://docs.microsoft.com/en-us/azure/azure-functions/durable/durable-functions-unit-testing which requires a lot of brittle mocking/setup to accomplish this.
 
-    [FunctionName(nameof(SomeActivity))]
-    public static Task SomeActivity([ActivityTrigger] DurableOrchestrationContextBase context)
-    {
-        return Task.CompletedTask;
-    }
-}
-```
 
-The InMemoryOrchestrationClient supports most features of durable functions including activities, retries, sub-orchestrations, external events etc.
+The implementation is currently a proof-of-concept and supports most features of durable functions including activities, retries, sub-orchestrations, external events etc.
 
-Todo:
+##Todo:
 
 - Publish on Nuget
 - Support other function arguments like ILogger etc.
