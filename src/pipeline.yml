@@ -26,3 +26,30 @@ steps:
     command: build
     projects: '**/*.csproj'
     arguments: '--configuration Release'
+
+- task: DotNetCoreCLI@2
+  inputs:
+    command: test
+    projects: '**/*Tests/*.csproj'
+    arguments: '--configuration $(buildConfiguration)'
+
+- task: DotNetCoreCLI@2
+  inputs:
+    command: test
+    projects: '**/*Tests/*.csproj'
+    arguments: '--configuration $(buildConfiguration) --collect "Code coverage"'
+
+- task: DotNetCoreCLI@2
+  inputs:
+    command: 'pack'
+    configuration: 'release'
+    packagesToPack: 'Forte.Functions.Testable/*.csproj' # Required when command == pack
+    #packDirectory: '$(build.artifactStagingDirectory)' # Optional
+    #nobuild: false # Optional
+    #versioningScheme: 'off' # Options: off, byPrereleaseNumber, byEnvVar, byBuildNumber
+    #versionEnvVar: # Required when versioningScheme == byEnvVar
+    #majorVersion: '1' # Required when versioningScheme == byPrereleaseNumber
+    #minorVersion: '0' # Required when versioningScheme == byPrereleaseNumber
+    #patchVersion: '0' # Required when versioningScheme == byPrereleaseNumber
+    #buildProperties: # Optional
+    #verbosityPack: 'detailed' # Options: quiet, minimal, normal, detailed, diagnostic
