@@ -25,18 +25,21 @@ steps:
     arguments: '--configuration Release'
 
 - task: DotNetCoreCLI@2
+  displayName: Run tests
   inputs:
     command: test
     projects: '**/*Tests/*.csproj'
     arguments: '--configuration $(buildConfiguration)'
 
 - task: DotNetCoreCLI@2
+  displayName: Collect code Coverage
   inputs:
     command: test
     projects: '**/*Tests/*.csproj'
     arguments: '--configuration $(buildConfiguration) --collect "Code coverage"'
 
 - task: DotNetCoreCLI@2
+  displayName: Create Nuget package
   inputs:
     command: 'pack'
     configuration: 'release'
