@@ -43,7 +43,7 @@ steps:
   inputs:
     command: 'pack'
     configuration: 'release'
-    packagesToPack: 'Forte.Functions.Testable/*.csproj' # Required when command == pack
+    packagesToPack: '/src/Forte.Functions.Testable/*.csproj' # Required when command == pack
     #packDirectory: '$(build.artifactStagingDirectory)' # Optional
     #nobuild: false # Optional
     #versioningScheme: 'off' # Options: off, byPrereleaseNumber, byEnvVar, byBuildNumber
