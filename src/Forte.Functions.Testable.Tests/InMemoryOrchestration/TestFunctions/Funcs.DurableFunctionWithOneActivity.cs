@@ -21,5 +21,6 @@ namespace Forte.Functions.Testable.Tests.InMemoryOrchestration.TestFunctions
     }
     public class TestFunctionInput
     {
+        public string Token { get; set; }
     }
 }

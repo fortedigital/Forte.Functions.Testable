@@ -41,5 +41,23 @@ namespace Forte.Functions.Testable.Tests.InMemoryOrchestration
             Assert.AreEqual(OrchestrationRuntimeStatus.Completed, status.RuntimeStatus);
             Assert.AreEqual(JToken.FromObject("OK"), status.Output);
         }
+
+        [TestMethod]
+        public async Task Activity_can_redefine_input_without_leaking_into_orchestrator_context()
+        {
+            var startInput = new TestFunctionInput{Token = "original"};
+
+            var client = new InMemoryOrchestrationClient(typeof(Funcs).Assembly);
+            var instanceId = await client
+                .StartNewAsync(nameof(Funcs.DurableFunctionWithSeparateActivityInput), startInput);
+
+            await client.WaitForOrchestrationToReachStatus(instanceId, OrchestrationRuntimeStatus.Completed);
+
+            var status = await client.GetStatusAsync(instanceId);
+
+            var endInput = status.Input.ToObject<TestFunctionInput>();
+
+            Assert.AreEqual(startInput.Token, endInput.Token, "Activity redefining input should not leak into orchestrator");
+        }
     }
 }

@@ -38,7 +38,7 @@ namespace Forte.Functions.Testable
 
             try
             {
-                Output = await CallActivityFunctionByNameAsync(orchestratorFunctionName);
+                Output = await CallActivityFunctionByNameAsync(orchestratorFunctionName, input, reuseContext:true);
             
                 Status = OrchestrationRuntimeStatus.Completed;
 
@@ -63,14 +63,12 @@ namespace Forte.Functions.Testable
 
         public override async Task<TResult> CallActivityAsync<TResult>(string functionName, object input)
         {
-            Input = input;
-
             var taskScheduled = new TaskScheduledEvent(History.Count) {Name = functionName};
             History.Add(taskScheduled);
 
             try
             {
-                var result = await CallActivityFunctionByNameAsync(functionName);
+                var result = await CallActivityFunctionByNameAsync(functionName, input);
 
                 History.Add(new TaskCompletedEvent(History.Count, taskScheduled.EventId,
                     JsonConvert.SerializeObject(result)));
@@ -84,17 +82,21 @@ namespace Forte.Functions.Testable
             }
         }
 
-        private async Task<dynamic> CallActivityFunctionByNameAsync(string functionName)
+        private async Task<dynamic> CallActivityFunctionByNameAsync(string functionName, object input, bool reuseContext = false)
         {
             var function = FindFunctionByName(functionName);
 
+            var context = reuseContext
+                ? this
+                : (DurableOrchestrationContextBase)new InMemoryActivityContext(this, input);
+
             if (function.ReturnType.IsGenericType)
             {
-                return await (dynamic) function.Invoke(null, new[] {this});
+                return await (dynamic) function.Invoke(null, new object[] {context});
             }
             else
             {
-                await (dynamic) function.Invoke(null, new[] {this});
+                await (dynamic) function.Invoke(null, new object[] {context});
                 return default;
             }
         }
