@@ -43,8 +43,8 @@ steps:
   inputs:
     command: 'pack'
     configuration: 'release'
-    packagesToPack: 'Forte.Functions.Testable/*.csproj' # Required when command == pack
-    #packDirectory: '$(build.artifactStagingDirectory)' # Optional
+    packagesToPack: '**/*.csproj' # Required when command == pack
+    packDirectory: '$(build.artifactStagingDirectory)' # Optional
     #nobuild: false # Optional
     #versioningScheme: 'off' # Options: off, byPrereleaseNumber, byEnvVar, byBuildNumber
     #versionEnvVar: # Required when versioningScheme == byEnvVar
@@ -53,3 +53,8 @@ steps:
     #patchVersion: '0' # Required when versioningScheme == byPrereleaseNumber
     #buildProperties: # Optional
     #verbosityPack: 'detailed' # Options: quiet, minimal, normal, detailed, diagnostic
+
+- task: PublishPipelineArtifact@0
+  displayName: Publish artifacts
+  inputs:
+    targetPath: $(build.artifactStagingDirectory)
