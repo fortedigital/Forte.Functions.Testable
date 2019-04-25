@@ -63,6 +63,8 @@ namespace Forte.Functions.Testable
 
         public override async Task<TResult> CallActivityAsync<TResult>(string functionName, object input)
         {
+            Input = input;
+
             var taskScheduled = new TaskScheduledEvent(History.Count) {Name = functionName};
             History.Add(taskScheduled);
 
@@ -126,22 +128,23 @@ namespace Forte.Functions.Testable
             // adapted from 
             // https://github.com/Azure/durabletask/blob/f9cc450539b5e37c97c19ae393d5bb1564fda7a8/src/DurableTask.Core/RetryInterceptor.cs
             TimeSpan nextDelay = TimeSpan.Zero;
-      
-            if (retryOptions.Handle(failure))
-            {
-                DateTime retryExpiration = (retryOptions.RetryTimeout != TimeSpan.MaxValue)
-                    ? firstAttempt.Add(retryOptions.RetryTimeout)
-                    : DateTime.MaxValue;
-                if (CurrentUtcDateTime < retryExpiration)
-                {
-                    double nextDelayInMilliseconds = retryOptions.FirstRetryInterval.TotalMilliseconds *
-                                                     Math.Pow(retryOptions.BackoffCoefficient, attempt);
-                    nextDelay = nextDelayInMilliseconds < retryOptions.MaxRetryInterval.TotalMilliseconds
-                        ? TimeSpan.FromMilliseconds(nextDelayInMilliseconds)
-                        : retryOptions.MaxRetryInterval;
-                }
-            }
-        
+
+            if (attempt >= retryOptions.MaxNumberOfAttempts) return nextDelay;
+
+            if (!retryOptions.Handle(failure)) return nextDelay;
+
+            DateTime retryExpiration = (retryOptions.RetryTimeout != TimeSpan.MaxValue)
+                ? firstAttempt.Add(retryOptions.RetryTimeout)
+                : DateTime.MaxValue;
+
+            if (CurrentUtcDateTime >= retryExpiration) return nextDelay;
+
+            double nextDelayInMilliseconds = retryOptions.FirstRetryInterval.TotalMilliseconds *
+                                             Math.Pow(retryOptions.BackoffCoefficient, attempt);
+            nextDelay = nextDelayInMilliseconds < retryOptions.MaxRetryInterval.TotalMilliseconds
+                ? TimeSpan.FromMilliseconds(nextDelayInMilliseconds)
+                : retryOptions.MaxRetryInterval;
+
             return nextDelay;
         }
 
