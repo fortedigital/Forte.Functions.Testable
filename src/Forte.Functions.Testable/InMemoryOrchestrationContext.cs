@@ -206,16 +206,74 @@ namespace Forte.Functions.Testable
             }
         }
 
+        private readonly List<OrchestrationTimer> _activeTimers = new List<OrchestrationTimer>();
+
         public override async Task<T> CreateTimer<T>(DateTime fireAt, T state, CancellationToken cancelToken)
         {
             var timerCreated = new TimerCreatedEvent(History.Count);
             History.Add(timerCreated);
 
-            await Task.Delay(fireAt - CurrentUtcDateTime, cancelToken);
+            var timer = new OrchestrationTimer(fireAt, CurrentUtcDateTime, cancelToken);
 
-            History.Add(new TimerFiredEvent(timerCreated.EventId));
+            try
+            {
+                _activeTimers.Add(timer);
+                await timer.Wait();
+                History.Add(new TimerFiredEvent(timerCreated.EventId));
+            }
+            finally
+            {
+                _activeTimers.Remove(timer);
+            }
 
             return state;
+        }
+
+        private class OrchestrationTimer : CancellationTokenSource
+        {
+            private DateTime StartedAt { get; }
+            private DateTime FireAt { get; }
+            public OrchestrationTimer(DateTime fireAt, DateTime startedAt, CancellationToken cancelToken)
+            {
+                StartedAt = startedAt;
+                FireAt = fireAt;
+
+                cancelToken.Register(Cancel);
+            }
+
+            public async Task Wait()
+            {
+                try
+                {
+                    var delay = FireAt - StartedAt;
+                    await Task.Delay(delay, this.Token);
+                }
+                catch (TaskCanceledException)
+                {
+                    if (!_swallowTaskCancelledException) throw;
+                }
+            }
+
+            private bool _swallowTaskCancelledException = false;
+
+            public void TimeChanged(DateTime newTime)
+            {
+                if (newTime < FireAt) return;
+
+                _swallowTaskCancelledException = true;
+                Cancel();
+            }
+        }
+
+        public void ChangeCurrentUtcTime(TimeSpan change)
+        {
+            _currentUtcDateTime = _currentUtcDateTime.Add(change);
+
+            for(var i = _activeTimers.Count-1; i >= 0; i--)
+            {
+                var timer = _activeTimers[i];
+                timer.TimeChanged(CurrentUtcDateTime);
+            }
         }
 
         private TimeSpan DefaultTimeout => Debugger.IsAttached
@@ -301,7 +359,10 @@ namespace Forte.Functions.Testable
             CustomStatus = customStatusObject;
         }
 
-        public override DateTime CurrentUtcDateTime => DateTime.UtcNow;
+        private DateTime _currentUtcDateTime = DateTime.UtcNow;
+
+        public override DateTime CurrentUtcDateTime => _currentUtcDateTime;
+
         public OrchestrationRuntimeStatus Status { get; private set; } = OrchestrationRuntimeStatus.Pending;
         public DateTime CreatedTime { get; private set; }
         public IList<HistoryEvent> History { get; } = new List<HistoryEvent>();

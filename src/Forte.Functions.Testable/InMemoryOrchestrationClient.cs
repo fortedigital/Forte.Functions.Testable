@@ -195,5 +195,12 @@ namespace Forte.Functions.Testable
                 if (totalWait > maxWait) throw new TimeoutException("WaitForOrchestrationToExpectEvent exceeded max wait time of " + maxWait);
             }
         }
+
+        public async Task Timeshift(string instanceId, TimeSpan change)
+        {
+            if (!_instances.TryGetValue(instanceId, out var context)) throw new Exception("ChangeCurrentUtcTime found no instance with id " + instanceId);
+
+            context.ChangeCurrentUtcTime(change);
+        }
     }
 }
