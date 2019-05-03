@@ -19,6 +19,13 @@ namespace Forte.Functions.Testable
     {
         private readonly Assembly _functionsAssembly;
 
+        /// <summary>
+        /// Whether or not to respect delay time delay from RetryOptions when retrying activities. 
+        /// When false, retries will happen immediately.
+        /// Default is false.
+        /// </summary>
+        public bool UseDelaysForRetries { get; set; } = false;
+
         public InMemoryOrchestrationClient(Assembly functionsAssembly)
         {
             _functionsAssembly = functionsAssembly;
@@ -56,7 +63,7 @@ namespace Forte.Functions.Testable
         public override Task<string> StartNewAsync(string orchestratorFunctionName, string instanceId, object input)
         {
             if (string.IsNullOrEmpty(instanceId)) instanceId = "instance-" + _instances.Count.ToString();
-            var context = new InMemoryOrchestrationContext(_functionsAssembly);
+            var context = new InMemoryOrchestrationContext(_functionsAssembly, this);
 
             _instances.Add(instanceId, context);
 

@@ -16,13 +16,16 @@ namespace Forte.Functions.Testable
     public class InMemoryOrchestrationContext : DurableOrchestrationContextBase
     {
         private readonly Assembly _functionsAssembly;
+        private readonly InMemoryOrchestrationClient _client;
         private string _orchestratorFunctionName;
         public object Input { get; private set; }
         public object Output { get; private set; }
 
-        public InMemoryOrchestrationContext(Assembly functionsAssembly)
+        public InMemoryOrchestrationContext(Assembly functionsAssembly,
+            InMemoryOrchestrationClient client)
         {
             _functionsAssembly = functionsAssembly;
+            _client = client;
         }
 
         public async Task Run(string orchestratorFunctionName, object input)
@@ -116,34 +119,39 @@ namespace Forte.Functions.Testable
             catch(Exception ex)
             {
                 var nextDelay = ComputeNextDelay(attempt, firstAttempt, ex, retryOptions);
-                if (nextDelay == TimeSpan.Zero) throw;
+                if (!nextDelay.HasValue) throw;
 
-                History.Add(new GenericEvent(History.Count, $"Delaying {nextDelay.TotalSeconds:##,##} seconds before retry attempt {attempt} for {functionName}"));
+                History.Add(new GenericEvent(History.Count, $"Delaying {nextDelay.Value.TotalSeconds:##,##} seconds before retry attempt {attempt} for {functionName}"));
 
-                await Task.Delay(nextDelay);
+                if (nextDelay.Value > TimeSpan.Zero)
+                {
+                    await CreateTimer(CurrentUtcDateTime.Add(nextDelay.Value), CancellationToken.None);
+                }
+
                 return await CallActivityWithRetryAsync<TResult>(functionName, retryOptions, input, firstAttempt, attempt + 1);
             }
         }
 
-        TimeSpan ComputeNextDelay(int attempt, DateTime firstAttempt, Exception failure, RetryOptions retryOptions)
+        TimeSpan? ComputeNextDelay(int attempt, DateTime firstAttempt, Exception failure, RetryOptions retryOptions)
         {
             // adapted from 
             // https://github.com/Azure/durabletask/blob/f9cc450539b5e37c97c19ae393d5bb1564fda7a8/src/DurableTask.Core/RetryInterceptor.cs
-            TimeSpan nextDelay = TimeSpan.Zero;
+           
+            if (attempt >= retryOptions.MaxNumberOfAttempts) return null;
 
-            if (attempt >= retryOptions.MaxNumberOfAttempts) return nextDelay;
-
-            if (!retryOptions.Handle(failure)) return nextDelay;
+            if (!retryOptions.Handle(failure)) return null;
 
             DateTime retryExpiration = (retryOptions.RetryTimeout != TimeSpan.MaxValue)
                 ? firstAttempt.Add(retryOptions.RetryTimeout)
                 : DateTime.MaxValue;
 
-            if (CurrentUtcDateTime >= retryExpiration) return nextDelay;
+            if (CurrentUtcDateTime >= retryExpiration) return null;
+
+            if (_client.UseDelaysForRetries) return TimeSpan.Zero;
 
             double nextDelayInMilliseconds = retryOptions.FirstRetryInterval.TotalMilliseconds *
                                              Math.Pow(retryOptions.BackoffCoefficient, attempt);
-            nextDelay = nextDelayInMilliseconds < retryOptions.MaxRetryInterval.TotalMilliseconds
+            TimeSpan? nextDelay = nextDelayInMilliseconds < retryOptions.MaxRetryInterval.TotalMilliseconds
                 ? TimeSpan.FromMilliseconds(nextDelayInMilliseconds)
                 : retryOptions.MaxRetryInterval;
 
@@ -164,7 +172,7 @@ namespace Forte.Functions.Testable
 
             try
             {
-                var subContext = new InMemoryOrchestrationContext(_functionsAssembly);
+                var subContext = new InMemoryOrchestrationContext(_functionsAssembly, _client);
                 await subContext.Run(functionName, input);
 
                 var result = (TResult)subContext.Output;
@@ -197,11 +205,15 @@ namespace Forte.Functions.Testable
             catch (Exception ex)
             {
                 var nextDelay = ComputeNextDelay(attempt, firstAttempt, ex, retryOptions);
-                if (nextDelay == TimeSpan.Zero) throw;
+                if (!nextDelay.HasValue) throw;
 
-                History.Add(new GenericEvent(History.Count, $"Delaying {nextDelay.TotalSeconds:##,##} seconds before retry attempt {attempt} for {functionName}"));
+                History.Add(new GenericEvent(History.Count, $"Delaying {nextDelay.Value.TotalSeconds:##,##} seconds before retry attempt {attempt} for {functionName}"));
 
-                await Task.Delay(nextDelay);
+                if(nextDelay.Value > TimeSpan.Zero)
+                { 
+                    await CreateTimer(CurrentUtcDateTime.Add(nextDelay.Value), CancellationToken.None);
+                }
+
                 return await CallActivityWithRetryAsync<TResult>(functionName, retryOptions, input, firstAttempt, attempt + 1);
             }
         }
