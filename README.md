@@ -1,7 +1,7 @@
 # Forte.Functions.Testable
 In-memory orchestration for testing Durable Functions
 
-[![Build Status](https://fortedigital.visualstudio.com/Forte.Functions.Testable/_apis/build/status/Build?branchName=master)](https://fortedigital.visualstudio.com/Forte.Functions.Testable/_build/latest?definitionId=101&branchName=master)
+[![Build Status](https://fortedigital.visualstudio.com/Forte.OpenSource/_apis/build/status/Forte.Functions.Testable?branchName=master)](https://fortedigital.visualstudio.com/Forte.OpenSource/_build/latest?definitionId=102&branchName=master)
 
 By leveraging DurableOrchestrationClientBase, this project implements InMemoryOrchestrationClient which allows durable functions to be executed in-memory and observed with no mocking. For example, you could write a test such as:
 
@@ -23,15 +23,14 @@ public async Task Can_execute_durable_function()
 }
 ```
 
-Tests can use the `WaitForOrchestrationToReachStatus`, `WaitForOrchestrationToExpectEvent` and `RaiseEventAsync` methods on the orchestration client to interact with the durable function.
-
+Tests can use the `WaitForOrchestrationToReachStatus`, `WaitForOrchestrationToExpectEvent`, `RaiseEventAsync` and `Timeshift` methods on the orchestration client to direct the durable function.
 
 Contrast this with the approach suggested in https://docs.microsoft.com/en-us/azure/azure-functions/durable/durable-functions-unit-testing which requires a lot of brittle mocking/setup to accomplish this.
 
 
 The implementation is currently a proof-of-concept and supports most features of durable functions including activities, retries, sub-orchestrations, external events etc. The major difference is of course that this orchestration client does not have the replay-behavior of durable functions, but simply executes the durable function in-memory with async/await-like behavior. 
 
-##Todo:
+## Todo:
 
 - Publish on Nuget
 - Support other function arguments like ILogger etc.
