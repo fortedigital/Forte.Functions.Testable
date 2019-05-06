@@ -1,4 +1,3 @@
-using System;
 using System.Threading.Tasks;
 using Forte.Functions.Testable.Tests.InMemoryOrchestration.TestFunctions;
 using Microsoft.Azure.WebJobs;
@@ -8,18 +7,18 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace Forte.Functions.Testable.Tests.InMemoryOrchestration
 {
     [TestClass]
-    public class TimerTests
+    public class DependenciesTests
     {
-        private IServiceProvider _services = new ServiceCollection().BuildServiceProvider();
-
         [TestMethod]
-        public async Task Can_fast_forward_time()
+        public async Task Durable_function_class_can_have_dependencies()
         {
-            var client = new InMemoryOrchestrationClient(typeof(Funcs).Assembly, _services);
-            var instanceId = await client
-                .StartNewAsync(nameof(Funcs.DurableFunctionWithTimer), new DurableFunctionWithTimerInput(TimeSpan.FromHours(1)));
+            var services = new ServiceCollection();
+            services.AddTransient<IFoo, Foo>();
+            services.AddTransient<DurableFunctionWithDependencies>();
 
-            await client.Timeshift(instanceId, TimeSpan.FromHours(1));
+            var client = new InMemoryOrchestrationClient(typeof(Funcs).Assembly, services.BuildServiceProvider());
+
+            var instanceId = await client.StartNewAsync(nameof(DurableFunctionWithDependencies.Function), null);
 
             await client.WaitForOrchestrationToReachStatus(instanceId, OrchestrationRuntimeStatus.Completed);
 

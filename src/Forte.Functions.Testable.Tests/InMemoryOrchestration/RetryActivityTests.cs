@@ -2,6 +2,7 @@ using System;
 using System.Threading.Tasks;
 using Forte.Functions.Testable.Tests.InMemoryOrchestration.TestFunctions;
 using Microsoft.Azure.WebJobs;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Forte.Functions.Testable.Tests.InMemoryOrchestration
@@ -12,7 +13,7 @@ namespace Forte.Functions.Testable.Tests.InMemoryOrchestration
         [TestMethod]
         public async Task Can_succeed_after_retry()
         {
-            var client = new InMemoryOrchestrationClient(typeof(Funcs).Assembly);
+            var client = new InMemoryOrchestrationClient(typeof(Funcs).Assembly, new ServiceCollection().BuildServiceProvider());
             var instanceId = await client
                 .StartNewAsync(nameof(Funcs.DurableFunctionWithRetrySucceedingActivity), null);
 
@@ -26,7 +27,7 @@ namespace Forte.Functions.Testable.Tests.InMemoryOrchestration
         [TestMethod]
         public async Task Can_fail_after_max_retries()
         {
-            var client = new InMemoryOrchestrationClient(typeof(Funcs).Assembly);
+            var client = new InMemoryOrchestrationClient(typeof(Funcs).Assembly, new ServiceCollection().BuildServiceProvider());
             var instanceId = await client
                 .StartNewAsync(nameof(Funcs.DurableFunctionWithRetryFailingActivity), null);
 

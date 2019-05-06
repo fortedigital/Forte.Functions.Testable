@@ -8,6 +8,8 @@ using System.Threading.Tasks;
 using DurableTask.Core;
 using DurableTask.Core.History;
 using Microsoft.Azure.WebJobs;
+using Microsoft.Data.Edm.Library;
+using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
 using RetryOptions = Microsoft.Azure.WebJobs.RetryOptions;
 
@@ -15,16 +17,13 @@ namespace Forte.Functions.Testable
 {
     public class InMemoryOrchestrationContext : DurableOrchestrationContextBase
     {
-        private readonly Assembly _functionsAssembly;
         private readonly InMemoryOrchestrationClient _client;
         private string _orchestratorFunctionName;
         public object Input { get; private set; }
         public object Output { get; private set; }
 
-        public InMemoryOrchestrationContext(Assembly functionsAssembly,
-            InMemoryOrchestrationClient client)
+        public InMemoryOrchestrationContext(InMemoryOrchestrationClient client)
         {
-            _functionsAssembly = functionsAssembly;
             _client = client;
         }
 
@@ -85,6 +84,8 @@ namespace Forte.Functions.Testable
             }
         }
 
+        private object _instance;
+
         private async Task<dynamic> CallActivityFunctionByNameAsync(string functionName, object input, bool reuseContext = false)
         {
             var function = FindFunctionByName(functionName);
@@ -93,13 +94,20 @@ namespace Forte.Functions.Testable
                 ? this
                 : (DurableOrchestrationContextBase)new InMemoryActivityContext(this, input);
 
+            var instance = function.IsStatic 
+                ? null 
+                : _instance 
+                ?? (_instance = _client.Services.GetService(function.DeclaringType));
+
+            var parameters = new object[] { context };
+
             if (function.ReturnType.IsGenericType)
             {
-                return await (dynamic) function.Invoke(null, new object[] {context});
+                return await (dynamic) function.Invoke(instance, parameters);
             }
             else
             {
-                await (dynamic) function.Invoke(null, new object[] {context});
+                await (dynamic) function.Invoke(instance, parameters);
                 return default;
             }
         }
@@ -160,8 +168,8 @@ namespace Forte.Functions.Testable
 
         private MethodInfo FindFunctionByName(string functionName)
         {
-            return _functionsAssembly.GetExportedTypes()
-                .SelectMany(type => type.GetMethods(BindingFlags.Static | BindingFlags.Public))
+            return _client.FunctionsAssembly.GetExportedTypes()
+                .SelectMany(type => type.GetMethods())
                 .FirstOrDefault(method => method.GetCustomAttribute<FunctionNameAttribute>()?.Name == functionName);
         }
 
@@ -172,7 +180,7 @@ namespace Forte.Functions.Testable
 
             try
             {
-                var subContext = new InMemoryOrchestrationContext(_functionsAssembly, _client);
+                var subContext = new InMemoryOrchestrationContext(_client);
                 await subContext.Run(functionName, input);
 
                 var result = (TResult)subContext.Output;
