@@ -29,11 +29,3 @@ Contrast this with the approach suggested in https://docs.microsoft.com/en-us/az
 
 
 The implementation is currently a proof-of-concept and supports most features of durable functions including activities, retries, sub-orchestrations, external events etc. The major difference is of course that this orchestration client does not have the replay-behavior of durable functions, but simply executes the durable function in-memory with async/await-like behavior. 
-
-## Todo:
-
-- Publish on Nuget
-- Support other function arguments like ILogger etc.
-- Support instance functions
-- Support DI
-- ...
