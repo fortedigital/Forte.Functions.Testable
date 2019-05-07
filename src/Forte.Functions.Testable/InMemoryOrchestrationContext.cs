@@ -8,7 +8,6 @@ using System.Threading.Tasks;
 using DurableTask.Core;
 using DurableTask.Core.History;
 using Microsoft.Azure.WebJobs;
-using Microsoft.Data.Edm.Library;
 using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
 using RetryOptions = Microsoft.Azure.WebJobs.RetryOptions;
@@ -84,20 +83,17 @@ namespace Forte.Functions.Testable
             }
         }
 
-        private object _instance;
-
         private async Task<dynamic> CallActivityFunctionByNameAsync(string functionName, object input, bool reuseContext = false)
         {
             var function = FindFunctionByName(functionName);
 
+            var instance = function.IsStatic
+                ? null
+                : ActivatorUtilities.CreateInstance(_client.Services, function.DeclaringType);
+
             var context = reuseContext
                 ? this
                 : (DurableOrchestrationContextBase)new InMemoryActivityContext(this, input);
-
-            var instance = function.IsStatic 
-                ? null 
-                : _instance 
-                ?? (_instance = ActivatorUtilities.CreateInstance(_client.Services, function.DeclaringType));
 
             var parameters = new object[] { context };
 
