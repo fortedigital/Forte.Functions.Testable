@@ -9,6 +9,7 @@ using DurableTask.Core;
 using DurableTask.Core.History;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using RetryOptions = Microsoft.Azure.WebJobs.RetryOptions;
 
@@ -95,7 +96,7 @@ namespace Forte.Functions.Testable
                 ? this
                 : (DurableOrchestrationContextBase)new InMemoryActivityContext(this, input);
 
-            var parameters = new object[] { context };
+            var parameters = ParametersForFunction(function, context).ToArray();
 
             if (function.ReturnType.IsGenericType)
             {
@@ -105,6 +106,25 @@ namespace Forte.Functions.Testable
             {
                 await (dynamic) function.Invoke(instance, parameters);
                 return default;
+            }
+        }
+
+        private IEnumerable<object> ParametersForFunction(MethodInfo function, DurableOrchestrationContextBase context)
+        {
+            foreach(var parameter in function.GetParameters())
+            {
+                if (typeof(DurableOrchestrationContextBase).IsAssignableFrom(parameter.ParameterType))
+                {
+                    yield return context;
+                }
+                else if (typeof(CancellationToken).IsAssignableFrom(parameter.ParameterType))
+                {
+                    yield return CancellationToken.None;
+                }
+                else
+                {
+                    yield return _client.Services.GetService(parameter.ParameterType);
+                }
             }
         }
 
