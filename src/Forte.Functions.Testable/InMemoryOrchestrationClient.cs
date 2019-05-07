@@ -8,8 +8,10 @@ using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using DurableTask.Core;
+using Microsoft.Azure.Functions.Extensions.DependencyInjection;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.DurableTask;
+using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
@@ -17,7 +19,8 @@ namespace Forte.Functions.Testable
 {
     public class InMemoryOrchestrationClient : DurableOrchestrationClientBase
     {
-        private readonly Assembly _functionsAssembly;
+        public Assembly FunctionsAssembly { get; }
+        public IServiceProvider Services { get; }
 
         /// <summary>
         /// Whether or not to respect delay time delay from RetryOptions when retrying activities. 
@@ -26,9 +29,10 @@ namespace Forte.Functions.Testable
         /// </summary>
         public bool UseDelaysForRetries { get; set; } = false;
 
-        public InMemoryOrchestrationClient(Assembly functionsAssembly)
+        public InMemoryOrchestrationClient(Assembly functionsAssembly, IServiceProvider services)
         {
-            _functionsAssembly = functionsAssembly;
+            FunctionsAssembly = functionsAssembly;
+            Services = services;
         }
 
         public override HttpResponseMessage CreateCheckStatusResponse(HttpRequestMessage request, string instanceId)
@@ -63,7 +67,7 @@ namespace Forte.Functions.Testable
         public override Task<string> StartNewAsync(string orchestratorFunctionName, string instanceId, object input)
         {
             if (string.IsNullOrEmpty(instanceId)) instanceId = "instance-" + _instances.Count.ToString();
-            var context = new InMemoryOrchestrationContext(_functionsAssembly, this);
+            var context = new InMemoryOrchestrationContext(this);
 
             _instances.Add(instanceId, context);
 

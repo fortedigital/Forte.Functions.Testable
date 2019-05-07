@@ -8,6 +8,8 @@ using System.Threading.Tasks;
 using DurableTask.Core;
 using DurableTask.Core.History;
 using Microsoft.Azure.WebJobs;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using RetryOptions = Microsoft.Azure.WebJobs.RetryOptions;
 
@@ -15,16 +17,13 @@ namespace Forte.Functions.Testable
 {
     public class InMemoryOrchestrationContext : DurableOrchestrationContextBase
     {
-        private readonly Assembly _functionsAssembly;
         private readonly InMemoryOrchestrationClient _client;
         private string _orchestratorFunctionName;
         public object Input { get; private set; }
         public object Output { get; private set; }
 
-        public InMemoryOrchestrationContext(Assembly functionsAssembly,
-            InMemoryOrchestrationClient client)
+        public InMemoryOrchestrationContext(InMemoryOrchestrationClient client)
         {
-            _functionsAssembly = functionsAssembly;
             _client = client;
         }
 
@@ -89,18 +88,43 @@ namespace Forte.Functions.Testable
         {
             var function = FindFunctionByName(functionName);
 
+            var instance = function.IsStatic
+                ? null
+                : ActivatorUtilities.CreateInstance(_client.Services, function.DeclaringType);
+
             var context = reuseContext
                 ? this
                 : (DurableOrchestrationContextBase)new InMemoryActivityContext(this, input);
 
+            var parameters = ParametersForFunction(function, context).ToArray();
+
             if (function.ReturnType.IsGenericType)
             {
-                return await (dynamic) function.Invoke(null, new object[] {context});
+                return await (dynamic) function.Invoke(instance, parameters);
             }
             else
             {
-                await (dynamic) function.Invoke(null, new object[] {context});
+                await (dynamic) function.Invoke(instance, parameters);
                 return default;
+            }
+        }
+
+        private IEnumerable<object> ParametersForFunction(MethodInfo function, DurableOrchestrationContextBase context)
+        {
+            foreach(var parameter in function.GetParameters())
+            {
+                if (typeof(DurableOrchestrationContextBase).IsAssignableFrom(parameter.ParameterType))
+                {
+                    yield return context;
+                }
+                else if (typeof(CancellationToken).IsAssignableFrom(parameter.ParameterType))
+                {
+                    yield return CancellationToken.None;
+                }
+                else
+                {
+                    yield return _client.Services.GetService(parameter.ParameterType);
+                }
             }
         }
 
@@ -160,8 +184,8 @@ namespace Forte.Functions.Testable
 
         private MethodInfo FindFunctionByName(string functionName)
         {
-            return _functionsAssembly.GetExportedTypes()
-                .SelectMany(type => type.GetMethods(BindingFlags.Static | BindingFlags.Public))
+            return _client.FunctionsAssembly.GetExportedTypes()
+                .SelectMany(type => type.GetMethods())
                 .FirstOrDefault(method => method.GetCustomAttribute<FunctionNameAttribute>()?.Name == functionName);
         }
 
@@ -172,7 +196,7 @@ namespace Forte.Functions.Testable
 
             try
             {
-                var subContext = new InMemoryOrchestrationContext(_functionsAssembly, _client);
+                var subContext = new InMemoryOrchestrationContext(_client);
                 await subContext.Run(functionName, input);
 
                 var result = (TResult)subContext.Output;
