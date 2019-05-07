@@ -8,6 +8,13 @@
     <Company>Forte Technology</Company>
     <Product />
     <Version>0.0.1</Version>
+    <PackageProjectUrl>https://github.com/fortedigital/Forte.Functions.Testable</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/fortedigital/Forte.Functions.Testable</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageTags>azure functions azure-functions azure-functions-v2 durable-functions unit-testing</PackageTags>
+    <AssemblyVersion>1.0.0.0</AssemblyVersion>
+    <FileVersion>1.0.0.0</FileVersion>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
   </PropertyGroup>
 
   <ItemGroup>
