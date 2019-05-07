@@ -14,7 +14,6 @@ namespace Forte.Functions.Testable.Tests.InMemoryOrchestration
         {
             var services = new ServiceCollection();
             services.AddTransient<IFoo, Foo>();
-            services.AddTransient<DurableFunctionWithDependencies>();
 
             var client = new InMemoryOrchestrationClient(typeof(Funcs).Assembly, services.BuildServiceProvider());
 

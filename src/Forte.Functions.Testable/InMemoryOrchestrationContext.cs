@@ -97,7 +97,7 @@ namespace Forte.Functions.Testable
             var instance = function.IsStatic 
                 ? null 
                 : _instance 
-                ?? (_instance = _client.Services.GetService(function.DeclaringType));
+                ?? (_instance = ActivatorUtilities.CreateInstance(_client.Services, function.DeclaringType));
 
             var parameters = new object[] { context };
 
