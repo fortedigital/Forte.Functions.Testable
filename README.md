@@ -3,6 +3,9 @@ In-memory orchestration for testing Durable Functions
 
 [![Build Status](https://fortedigital.visualstudio.com/Forte.OpenSource/_apis/build/status/Forte.Functions.Testable?branchName=master)](https://fortedigital.visualstudio.com/Forte.OpenSource/_build/latest?definitionId=102&branchName=master)
 
+[![Nuget](https://img.shields.io/nuget/v/Forte.Functions.Testable.svg?label=NuGet)](https://www.nuget.org/packages/Forte.Functions.Testable/)
+
+
 By leveraging DurableOrchestrationClientBase, this project implements InMemoryOrchestrationClient which allows durable functions to be executed in-memory and observed with no mocking. For example, you could write a test such as:
 
 ```c#
