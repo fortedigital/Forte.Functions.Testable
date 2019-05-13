@@ -27,6 +27,7 @@ namespace Forte.Functions.Testable.Tests.InMemoryOrchestration
 
             var status = await client.GetStatusAsync(instanceId);
 
+            TestUtil.LogHistory(status, Console.Out);
             Assert.AreEqual(OrchestrationRuntimeStatus.Completed, status.RuntimeStatus);
         }
 
@@ -43,6 +44,7 @@ namespace Forte.Functions.Testable.Tests.InMemoryOrchestration
 
             var status = await client.GetStatusAsync(instanceId);
 
+            TestUtil.LogHistory(status, Console.Out);
             Assert.AreEqual(OrchestrationRuntimeStatus.Completed, status.RuntimeStatus);
             Assert.AreEqual(JToken.FromObject("OK"), status.Output);
         }
@@ -62,6 +64,7 @@ namespace Forte.Functions.Testable.Tests.InMemoryOrchestration
 
             var endInput = status.Input.ToObject<TestFunctionInput>();
 
+            TestUtil.LogHistory(status, Console.Out);
             Assert.AreEqual(startInput.Token, endInput.Token, "Activity redefining input should not leak into orchestrator");
         }
     }
