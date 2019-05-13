@@ -25,6 +25,7 @@ namespace Forte.Functions.Testable.Tests.InMemoryOrchestration
 
             var status = await client.GetStatusAsync(instanceId);
 
+            TestUtil.LogHistory(status, Console.Out);
             Assert.AreEqual(OrchestrationRuntimeStatus.Completed, status.RuntimeStatus);
         }
     }

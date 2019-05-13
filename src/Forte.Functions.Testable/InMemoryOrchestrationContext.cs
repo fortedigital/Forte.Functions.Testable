@@ -145,7 +145,7 @@ namespace Forte.Functions.Testable
                 var nextDelay = ComputeNextDelay(attempt, firstAttempt, ex, retryOptions);
                 if (!nextDelay.HasValue) throw;
 
-                History.Add(new GenericEvent(History.Count, $"Delaying {nextDelay.Value.TotalSeconds:##,##} seconds before retry attempt {attempt} for {functionName}"));
+                History.Add(new GenericEvent(History.Count, $"Delaying {nextDelay.Value.TotalSeconds:0.###} seconds before retry attempt {attempt} for {functionName}"));
 
                 if (nextDelay.Value > TimeSpan.Zero)
                 {
@@ -231,7 +231,7 @@ namespace Forte.Functions.Testable
                 var nextDelay = ComputeNextDelay(attempt, firstAttempt, ex, retryOptions);
                 if (!nextDelay.HasValue) throw;
 
-                History.Add(new GenericEvent(History.Count, $"Delaying {nextDelay.Value.TotalSeconds:##,##} seconds before retry attempt {attempt} for {functionName}"));
+                History.Add(new GenericEvent(History.Count, $"Delaying {nextDelay.Value.TotalSeconds:0.###} seconds before retry attempt {attempt} for {functionName}"));
 
                 if(nextDelay.Value > TimeSpan.Zero)
                 { 
@@ -338,7 +338,7 @@ namespace Forte.Functions.Testable
             try
             {
                 await Task.Delay(timeout, externalEventToken.Token);
-                throw new TimeoutException($"WaitForExternalEvent timed out after {timeout.TotalSeconds:##.##} seconds without receiving external event `{name}`");
+                throw new TimeoutException($"WaitForExternalEvent timed out after {timeout.TotalSeconds:0.###} seconds without receiving external event `{name}`");
             }
             catch (TaskCanceledException e)
             {
@@ -353,10 +353,11 @@ namespace Forte.Functions.Testable
 
         public void NotifyExternalEvent(string name, object data)
         {
-            if (_externalEventTokens.TryGetValue(name, out var token)) { 
+            if (_externalEventTokens.TryGetValue(name, out var token))
+            {
+                History.Add(new GenericEvent(History.Count, $"External event `{name}` happened"));
                 token.Notify(data);
 
-                History.Add(new GenericEvent(History.Count, $"External event `{name}` raised"));
             }
         }
 
