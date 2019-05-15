@@ -8,14 +8,14 @@ namespace Forte.Functions.Testable.Tests.InMemoryOrchestration.TestFunctions
     {
         [FunctionName(nameof(DurableFunctionWithSubOrchestration))]
         public static Task DurableFunctionWithSubOrchestration(
-            [OrchestrationTrigger] DurableOrchestrationContextBase context)
+            [OrchestrationTrigger] IDurableOrchestrationContext context)
         {
             return context.CallSubOrchestratorAsync(nameof(SubOrchestration), null);
         }
 
         [FunctionName(nameof(SubOrchestration))]
         public static Task SubOrchestration(
-            [OrchestrationTrigger] DurableOrchestrationContextBase context)
+            [OrchestrationTrigger] IDurableOrchestrationContext context)
         {
             return context.CallActivityAsync(nameof(AnActivity), null);
         }

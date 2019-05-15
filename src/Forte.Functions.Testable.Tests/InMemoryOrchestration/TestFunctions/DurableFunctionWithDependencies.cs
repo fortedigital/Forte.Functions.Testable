@@ -16,7 +16,7 @@ namespace Forte.Functions.Testable.Tests.InMemoryOrchestration.TestFunctions
 
         [FunctionName(nameof(Function))]
         public async Task Function(
-            [OrchestrationTrigger] DurableOrchestrationContextBase context)
+            [OrchestrationTrigger] IDurableOrchestrationContext context)
         {
             Assert.IsNotNull(_foo);
         }

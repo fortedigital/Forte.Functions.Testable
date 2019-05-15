@@ -9,7 +9,7 @@ namespace Forte.Functions.Testable.Tests.InMemoryOrchestration.TestFunctions
     {
         [FunctionName(nameof(DurableFunctionWithTimer))]
         public static async Task DurableFunctionWithTimer(
-            [OrchestrationTrigger] DurableOrchestrationContextBase context)
+            [OrchestrationTrigger] IDurableOrchestrationContext context)
         {
             var input = context.GetInput<DurableFunctionWithTimerInput>();
             await context.CreateTimer(context.CurrentUtcDateTime.Add(input.Timer), CancellationToken.None);

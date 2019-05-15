@@ -9,7 +9,7 @@ namespace Forte.Functions.Testable.Tests.InMemoryOrchestration.TestFunctions
     {
         [FunctionName(nameof(DurableFunctionWithRetrySucceedingActivity))]
         public static async Task DurableFunctionWithRetrySucceedingActivity(
-            [OrchestrationTrigger] DurableOrchestrationContextBase context)
+            [OrchestrationTrigger] IDurableOrchestrationContext context)
         {
             await context.CallActivityWithRetryAsync(
                 nameof(FailAtGivenCallNoActivity), 
@@ -19,7 +19,7 @@ namespace Forte.Functions.Testable.Tests.InMemoryOrchestration.TestFunctions
 
         [FunctionName(nameof(DurableFunctionWithRetryFailingActivity))]
         public static async Task DurableFunctionWithRetryFailingActivity(
-            [OrchestrationTrigger] DurableOrchestrationContextBase context)
+            [OrchestrationTrigger] IDurableOrchestrationContext context)
         {
             await context.CallActivityWithRetryAsync(
                 nameof(FailAtGivenCallNoActivity),
@@ -28,7 +28,7 @@ namespace Forte.Functions.Testable.Tests.InMemoryOrchestration.TestFunctions
         }
 
         [FunctionName(nameof(FailAtGivenCallNoActivity))]
-        public static Task FailAtGivenCallNoActivity([ActivityTrigger] DurableOrchestrationContextBase context)
+        public static Task FailAtGivenCallNoActivity([ActivityTrigger] IDurableOrchestrationContext context)
         {
             var activitySetup = context.GetInput<RetryingActivitySetup>();
             activitySetup.Increment();

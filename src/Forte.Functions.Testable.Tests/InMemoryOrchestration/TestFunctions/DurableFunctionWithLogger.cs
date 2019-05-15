@@ -18,7 +18,7 @@ namespace Forte.Functions.Testable.Tests.InMemoryOrchestration.TestFunctions
 
         [FunctionName(nameof(LoggerFn))]
         public async Task LoggerFn(
-            [OrchestrationTrigger] DurableOrchestrationContextBase context, ILogger logger)
+            [OrchestrationTrigger] IDurableOrchestrationContext context, ILogger logger)
         {
             Assert.IsNotNull(logger, "Logger injected into function was null");
 

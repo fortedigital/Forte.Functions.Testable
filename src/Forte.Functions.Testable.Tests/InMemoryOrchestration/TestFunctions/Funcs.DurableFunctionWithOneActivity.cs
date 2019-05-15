@@ -7,14 +7,14 @@ namespace Forte.Functions.Testable.Tests.InMemoryOrchestration.TestFunctions
     {
         [FunctionName(nameof(DurableFunctionWithOneActivity))]
         public static async Task DurableFunctionWithOneActivity(
-            [OrchestrationTrigger] DurableOrchestrationContextBase context)
+            [OrchestrationTrigger] IDurableOrchestrationContext context)
         {
             var input = context.GetInput<TestFunctionInput>();
             await context.CallActivityAsync(nameof(AnActivity), input);
         }
 
         [FunctionName(nameof(AnActivity))]
-        public static Task AnActivity([ActivityTrigger] DurableOrchestrationContextBase context)
+        public static Task AnActivity([ActivityTrigger] IDurableOrchestrationContext context)
         {
             return Task.CompletedTask;
         }

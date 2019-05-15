@@ -8,14 +8,14 @@ namespace Forte.Functions.Testable.Tests.InMemoryOrchestration.TestFunctions
     {
         [FunctionName(nameof(DurableFunctionWithExternalEvent))]
         public static async Task DurableFunctionWithExternalEvent(
-            [OrchestrationTrigger] DurableOrchestrationContextBase context)
+            [OrchestrationTrigger] IDurableOrchestrationContext context)
         {
             await context.WaitForExternalEvent(ExternalEventName);
         }
 
         [FunctionName(nameof(DurableFunctionWithExternalEventTimeout))]
         public static async Task DurableFunctionWithExternalEventTimeout(
-            [OrchestrationTrigger] DurableOrchestrationContextBase context)
+            [OrchestrationTrigger] IDurableOrchestrationContext context)
         {
             await context.WaitForExternalEvent(ExternalEventName, TimeSpan.FromMilliseconds(5));
         }
