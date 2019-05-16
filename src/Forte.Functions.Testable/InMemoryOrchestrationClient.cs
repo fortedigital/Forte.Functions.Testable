@@ -64,16 +64,21 @@ namespace Forte.Functions.Testable
 
         readonly Dictionary<string, InMemoryOrchestrationContext> _instances = new Dictionary<string, InMemoryOrchestrationContext>();
 
-        public override Task<string> StartNewAsync(string orchestratorFunctionName, string instanceId, object input)
+        public override async Task<string> StartNewAsync(string orchestratorFunctionName, string instanceId, object input)
         {
             if (string.IsNullOrEmpty(instanceId)) instanceId = "instance-" + _instances.Count.ToString();
-            var context = new InMemoryOrchestrationContext(this);
 
+            if (_instances.TryGetValue(instanceId, out var existing))
+            {
+                await this.TerminateAsync(instanceId, null);
+            }
+
+            var context = new InMemoryOrchestrationContext(this);
             _instances.Add(instanceId, context);
 
             context.Run(orchestratorFunctionName, input);
 
-            return Task.FromResult(instanceId);
+            return instanceId;
         }
 
         public override Task RaiseEventAsync(string instanceId, string eventName, object eventData)
@@ -92,7 +97,8 @@ namespace Forte.Functions.Testable
 
         public override Task TerminateAsync(string instanceId, string reason)
         {
-            throw new NotImplementedException();
+            _instances.Remove(instanceId); 
+            return Task.CompletedTask;
         }
 
         public override Task RewindAsync(string instanceId, string reason)
@@ -128,7 +134,7 @@ namespace Forte.Functions.Testable
                     : JToken.FromObject(i.Value.Input),
                 InstanceId = i.Key,
                 LastUpdatedTime = i.Value.CurrentUtcDateTime,
-                Name = i.Key,
+                Name = i.Value.Name,
                 RuntimeStatus = i.Value.Status,
                 Output = null == i.Value.Output 
                     ? null 

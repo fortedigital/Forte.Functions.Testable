@@ -403,5 +403,6 @@ namespace Forte.Functions.Testable
         public OrchestrationRuntimeStatus Status { get; private set; } = OrchestrationRuntimeStatus.Pending;
         public DateTime CreatedTime { get; private set; }
         public IList<HistoryEvent> History { get; } = new List<HistoryEvent>();
+        public string Name => _orchestratorFunctionName;
     }
 }
