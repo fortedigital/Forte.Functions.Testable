@@ -20,6 +20,7 @@ namespace Forte.Functions.Testable
     {
         private readonly InMemoryOrchestrationClient _client;
         private string _orchestratorFunctionName;
+        public string Name => _orchestratorFunctionName;
         public object Input { get; private set; }
         public object Output { get; private set; }
 
@@ -29,7 +30,7 @@ namespace Forte.Functions.Testable
         }
 
         public async Task Run(string instanceId, string parentInstanceId, string orchestratorFunctionName, object input)
-        {
+        {   
             InstanceId = instanceId;
             ParentInstanceId = parentInstanceId;
             _orchestratorFunctionName = orchestratorFunctionName;

@@ -69,6 +69,11 @@ namespace Forte.Functions.Testable
             if (string.IsNullOrEmpty(instanceId)) instanceId = "instance-" + _instances.Count.ToString();
             var context = new InMemoryOrchestrationContext(this);
 
+            if (_instances.TryGetValue(instanceId, out var existingInstance))
+            {   
+                TerminateAsync(instanceId, "Instance replaced via StartNewAsync");
+            }
+
             _instances.Add(instanceId, context);
 
             context.Run(instanceId, null, orchestratorFunctionName, input);
@@ -119,7 +124,8 @@ namespace Forte.Functions.Testable
 
         public  Task TerminateAsync(string instanceId, string reason)
         {
-            throw new NotImplementedException();
+            _instances.Remove(instanceId);
+            return Task.CompletedTask;
         }
 
         public  Task RewindAsync(string instanceId, string reason)
@@ -155,7 +161,7 @@ namespace Forte.Functions.Testable
                     : JToken.FromObject(i.Value.Input),
                 InstanceId = i.Key,
                 LastUpdatedTime = i.Value.CurrentUtcDateTime,
-                Name = i.Key,
+                Name = i.Value.Name,
                 RuntimeStatus = i.Value.Status,
                 Output = null == i.Value.Output 
                     ? null 
