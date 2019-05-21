@@ -128,6 +128,10 @@ namespace Forte.Functions.Testable
                 {
                     yield return CancellationToken.None;
                 }
+                else if (typeof(DurableOrchestrationClientBase).IsAssignableFrom(parameter.ParameterType))
+                {
+                    yield return _client;
+                }
                 else
                 {
                     yield return _client.Services.GetService(parameter.ParameterType);
