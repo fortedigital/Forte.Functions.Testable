@@ -108,7 +108,7 @@ namespace Forte.Functions.Testable
 
         public override Task<DurableOrchestrationStatus> GetStatusAsync(string instanceId, bool showHistory, bool showHistoryOutput, bool showInput = true)
         {
-            if (!_instances.TryGetValue(instanceId, out var context)) throw new Exception("GetStatusAsync found no instance with id " + instanceId);
+            if (!_instances.TryGetValue(instanceId, out var context)) return null;
 
             return Task.FromResult(ToStatusObject(new KeyValuePair<string, InMemoryOrchestrationContext>(instanceId, context)));
         }
@@ -155,18 +155,18 @@ namespace Forte.Functions.Testable
             return Task.FromResult((IList<DurableOrchestrationStatus>)list);
         }
 
+        public override async Task<OrchestrationStatusQueryResult> GetStatusAsync(DateTime createdTimeFrom, DateTime? createdTimeTo, IEnumerable<OrchestrationRuntimeStatus> runtimeStatus, int pageSize,
+            string continuationToken, CancellationToken cancellationToken = new CancellationToken())
+        {
+            throw new NotImplementedException();
+        }
+
         public override Task<PurgeHistoryResult> PurgeInstanceHistoryAsync(string instanceId)
         {
             throw new NotImplementedException();
         }
 
         public override Task<PurgeHistoryResult> PurgeInstanceHistoryAsync(DateTime createdTimeFrom, DateTime? createdTimeTo, IEnumerable<OrchestrationStatus> runtimeStatus)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override Task<OrchestrationStatusQueryResult> GetStatusAsync(DateTime createdTimeFrom, DateTime? createdTimeTo, IEnumerable<OrchestrationRuntimeStatus> runtimeStatus, int pageSize,
-            string continuationToken, CancellationToken cancellationToken = new CancellationToken())
         {
             throw new NotImplementedException();
         }
