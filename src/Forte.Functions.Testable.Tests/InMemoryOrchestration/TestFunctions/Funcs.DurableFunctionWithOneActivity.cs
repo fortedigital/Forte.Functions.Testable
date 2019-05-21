@@ -14,7 +14,7 @@ namespace Forte.Functions.Testable.Tests.InMemoryOrchestration.TestFunctions
         }
 
         [FunctionName(nameof(AnActivity))]
-        public static Task AnActivity([ActivityTrigger] DurableOrchestrationContextBase context)
+        public static Task AnActivity([ActivityTrigger] DurableActivityContextBase context)
         {
             return Task.CompletedTask;
         }

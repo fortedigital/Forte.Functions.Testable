@@ -22,7 +22,7 @@ namespace Forte.Functions.Testable.Tests.InMemoryOrchestration.TestFunctions
 
 
         [FunctionName(nameof(ActivityVerifyingInput))]
-        public static Task ActivityVerifyingInput([ActivityTrigger] DurableOrchestrationContextBase context)
+        public static Task ActivityVerifyingInput([ActivityTrigger] DurableActivityContextBase context)
         {
             var input = context.GetInput<TestFunctionInput>();
             Assert.AreEqual("activity", input.Token);
