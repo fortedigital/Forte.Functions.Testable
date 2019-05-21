@@ -117,7 +117,7 @@ namespace Forte.Functions.Testable
 
         public override Task<IList<DurableOrchestrationStatus>> GetStatusAsync(CancellationToken cancellationToken = new CancellationToken())
         {
-            var list = _instances.Select(ToStatusObject).ToList();
+            var list = _instances.ToList().Select(ToStatusObject).ToList();
 
             return Task.FromResult((IList<DurableOrchestrationStatus>)list);
         }
@@ -130,7 +130,7 @@ namespace Forte.Functions.Testable
                 CustomStatus = null == i.Value.CustomStatus 
                     ? null 
                     :  JToken.FromObject(i.Value.CustomStatus),
-                History = JArray.FromObject(i.Value.History),
+                History = JArray.FromObject(i.Value.History.ToArray()),
                 Input = null == i.Value.Input 
                     ? null 
                     : JToken.FromObject(i.Value.Input),
