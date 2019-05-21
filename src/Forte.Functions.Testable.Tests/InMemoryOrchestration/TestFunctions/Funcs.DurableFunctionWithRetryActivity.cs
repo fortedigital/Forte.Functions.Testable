@@ -28,7 +28,7 @@ namespace Forte.Functions.Testable.Tests.InMemoryOrchestration.TestFunctions
         }
 
         [FunctionName(nameof(FailAtGivenCallNoActivity))]
-        public static Task FailAtGivenCallNoActivity([ActivityTrigger] DurableOrchestrationContextBase context)
+        public static Task FailAtGivenCallNoActivity([ActivityTrigger] DurableActivityContextBase context)
         {
             var activitySetup = context.GetInput<RetryingActivitySetup>();
             activitySetup.Increment();

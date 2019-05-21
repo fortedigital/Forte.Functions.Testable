@@ -88,13 +88,16 @@ namespace Forte.Functions.Testable
         {
             var function = FindFunctionByName(functionName);
 
+            if (null == function)
+                throw new Exception($"Unable to find activity named {functionName} in {_client.FunctionsAssembly.FullName} (did you forget to add a FunctionName attribute to it)?");
+
             var instance = function.IsStatic
                 ? null
                 : ActivatorUtilities.CreateInstance(_client.Services, function.DeclaringType);
 
-            var context = reuseContext
-                ? this
-                : (DurableOrchestrationContextBase)new InMemoryActivityContext(this, input);
+            object context = reuseContext
+                ? (object) this
+                : (object)new InMemoryActivityContext(this, input);
 
             var parameters = ParametersForFunction(function, context).ToArray();
 
@@ -109,11 +112,15 @@ namespace Forte.Functions.Testable
             }
         }
 
-        private IEnumerable<object> ParametersForFunction(MethodInfo function, DurableOrchestrationContextBase context)
+        private IEnumerable<object> ParametersForFunction(MethodInfo function, object context)
         {
             foreach(var parameter in function.GetParameters())
             {
                 if (typeof(DurableOrchestrationContextBase).IsAssignableFrom(parameter.ParameterType))
+                {
+                    yield return context;
+                }
+                else if (typeof(DurableActivityContextBase).IsAssignableFrom(parameter.ParameterType))
                 {
                     yield return context;
                 }
