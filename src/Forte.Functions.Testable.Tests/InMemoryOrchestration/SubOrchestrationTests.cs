@@ -27,4 +27,21 @@ namespace Forte.Functions.Testable.Tests.InMemoryOrchestration
             Assert.AreEqual(OrchestrationRuntimeStatus.Completed, status.RuntimeStatus);
         }
     }
+
+    [TestClass]
+    public class StatusTests
+    {
+        private IServiceProvider _services = new ServiceCollection().BuildServiceProvider();
+
+        [TestMethod]
+        public async Task Can_get_null_for_unknown_instance_id()
+        {
+
+            var client = new InMemoryOrchestrationClient(typeof(Funcs).Assembly, _services);
+
+            var status = await client.GetStatusAsync(Guid.NewGuid().ToString());
+
+            Assert.IsNull(status);
+        }
+    }
 }
