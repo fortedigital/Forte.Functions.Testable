@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -62,7 +63,7 @@ namespace Forte.Functions.Testable
             }
         }
 
-        readonly Dictionary<string, InMemoryOrchestrationContext> _instances = new Dictionary<string, InMemoryOrchestrationContext>();
+        readonly ConcurrentDictionary<string, InMemoryOrchestrationContext> _instances = new ConcurrentDictionary<string, InMemoryOrchestrationContext>();
 
         public override async Task<string> StartNewAsync(string orchestratorFunctionName, string instanceId, object input)
         {
@@ -74,7 +75,7 @@ namespace Forte.Functions.Testable
             }
 
             var context = new InMemoryOrchestrationContext(this);
-            _instances.Add(instanceId, context);
+            _instances.TryAdd(instanceId, context);
 
             context.Run(orchestratorFunctionName, input);
 
@@ -97,7 +98,7 @@ namespace Forte.Functions.Testable
 
         public override Task TerminateAsync(string instanceId, string reason)
         {
-            _instances.Remove(instanceId); 
+            _instances.Remove(instanceId, out var _); 
             return Task.CompletedTask;
         }
 
