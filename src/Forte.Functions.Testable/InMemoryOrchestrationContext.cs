@@ -91,7 +91,9 @@ namespace Forte.Functions.Testable
             if (null == function)
                 throw new Exception($"Unable to find activity named {functionName} in {_client.FunctionsAssembly.FullName} (did you forget to add a FunctionName attribute to it)?");
 
-            var instance = function.IsStatic
+            object instance = null;
+
+            instance = function.IsStatic
                 ? null
                 : ActivatorUtilities.CreateInstance(_client.Services, function.DeclaringType);
 
@@ -131,6 +133,10 @@ namespace Forte.Functions.Testable
                 else if (typeof(DurableOrchestrationClientBase).IsAssignableFrom(parameter.ParameterType))
                 {
                     yield return _client;
+                }
+                else if (typeof(ILogger).IsAssignableFrom(parameter.ParameterType))
+                {
+                    yield return _client.Services.GetService<ILoggerFactory>()?.CreateLogger(function.Name);
                 }
                 else
                 {

@@ -4,6 +4,7 @@ using Forte.Functions.Testable.Tests.InMemoryOrchestration.TestFunctions;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Forte.Functions.Testable.Tests.InMemoryOrchestration
@@ -29,12 +30,28 @@ namespace Forte.Functions.Testable.Tests.InMemoryOrchestration
             Assert.AreEqual(OrchestrationRuntimeStatus.Completed, status.RuntimeStatus);
         }
 
+        [TestMethod]
+        public async Task Missing_dependency_failures_are_helpful()
+        {
+            var services = new ServiceCollection();
+
+            var client = new InMemoryOrchestrationClient(typeof(Funcs).Assembly, services.BuildServiceProvider());
+
+            var instanceId = await client.StartNewAsync(nameof(DurableFunctionWithDependencies.Function), null);
+
+            await client.WaitForOrchestrationToReachStatus(instanceId, OrchestrationRuntimeStatus.Failed);
+
+            var status = await client.GetStatusAsync(instanceId);
+
+            TestUtil.LogHistory(status, Console.Out, true);
+        }
+
 
         [TestMethod]
         public async Task Activity_can_inject_logger()
         {
             var services = new ServiceCollection();
-            services.AddTransient<ILogger, ConsoleWriteLineLogger>();
+            services.AddLogging();
 
             var client = new InMemoryOrchestrationClient(typeof(Funcs).Assembly, services.BuildServiceProvider());
 

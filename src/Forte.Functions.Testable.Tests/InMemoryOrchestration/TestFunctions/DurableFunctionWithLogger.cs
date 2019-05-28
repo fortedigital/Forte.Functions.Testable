@@ -7,13 +7,11 @@ namespace Forte.Functions.Testable.Tests.InMemoryOrchestration.TestFunctions
 {
     public class DurableFunctionWithLogger
     {
-        private readonly ILogger _logger;
-
-        public DurableFunctionWithLogger(ILogger logger)
+        
+        public DurableFunctionWithLogger(ILoggerFactory loggerFactory)
         {
-            _logger = logger;
-            Assert.IsNotNull(_logger, "Logger injected into constructor was null");
-            _logger.LogInformation("Function class instantiated");
+            Assert.IsNotNull(loggerFactory, "Logger injected into constructor was null");
+            loggerFactory.CreateLogger(nameof(DurableFunctionWithLogger)).LogInformation("Function class instantiated");
         }
 
         [FunctionName(nameof(LoggerFn))]
@@ -22,7 +20,7 @@ namespace Forte.Functions.Testable.Tests.InMemoryOrchestration.TestFunctions
         {
             Assert.IsNotNull(logger, "Logger injected into function was null");
 
-            _logger.LogInformation("Activity executing");
+            logger.LogInformation("Activity executing");
         }
     }
 }
