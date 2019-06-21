@@ -64,6 +64,24 @@ namespace Forte.Functions.Testable.Tests.InMemoryOrchestration
             TestUtil.LogHistory(status, Console.Out);
             Assert.AreEqual(OrchestrationRuntimeStatus.Completed, status.RuntimeStatus);
         }
+
+        [TestMethod]
+        public async Task Activity_can_inject_ExecutionContext()
+        {
+            var services = new ServiceCollection();
+            services.AddLogging();
+
+            var client = new InMemoryOrchestrationClient(typeof(Funcs).Assembly, services.BuildServiceProvider());
+
+            var instanceId = await client.StartNewAsync(nameof(DurableFunctionWithExecutionContext.ExecutionContextFunction), null);
+
+            await client.WaitForOrchestrationToReachStatus(instanceId, OrchestrationRuntimeStatus.Completed);
+
+            var status = await client.GetStatusAsync(instanceId);
+
+            TestUtil.LogHistory(status, Console.Out);
+            Assert.AreEqual(OrchestrationRuntimeStatus.Completed, status.RuntimeStatus);
+        }
     }
 
     public class ConsoleWriteLineLogger : ILogger, IDisposable

@@ -11,6 +11,7 @@ using Microsoft.Azure.WebJobs;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
+using ExecutionContext = Microsoft.Azure.WebJobs.ExecutionContext;
 using RetryOptions = Microsoft.Azure.WebJobs.RetryOptions;
 
 namespace Forte.Functions.Testable
@@ -101,7 +102,7 @@ namespace Forte.Functions.Testable
                 ? (object) this
                 : (object)new InMemoryActivityContext(this, input);
 
-            var parameters = ParametersForFunction(function, context).ToArray();
+            var parameters = ParametersForFunction(functionName, function, context).ToArray();
 
             if (function.ReturnType.IsGenericType)
             {
@@ -114,7 +115,7 @@ namespace Forte.Functions.Testable
             }
         }
 
-        private IEnumerable<object> ParametersForFunction(MethodInfo function, object context)
+        private IEnumerable<object> ParametersForFunction(string functionName, MethodInfo function, object context)
         {
             foreach(var parameter in function.GetParameters())
             {
@@ -137,6 +138,14 @@ namespace Forte.Functions.Testable
                 else if (typeof(ILogger).IsAssignableFrom(parameter.ParameterType))
                 {
                     yield return _client.Services.GetService<ILoggerFactory>()?.CreateLogger(function.Name);
+                }
+                else if (typeof(ExecutionContext).IsAssignableFrom(parameter.ParameterType))
+                {
+                    yield return new ExecutionContext
+                    {
+                        FunctionName = functionName,
+                        InvocationId = Guid.NewGuid()
+                    };
                 }
                 else
                 {
