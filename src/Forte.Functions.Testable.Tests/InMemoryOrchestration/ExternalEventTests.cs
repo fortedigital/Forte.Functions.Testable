@@ -40,7 +40,24 @@ namespace Forte.Functions.Testable.Tests.InMemoryOrchestration
         {
             var client = new InMemoryOrchestrationClient(typeof(Funcs).Assembly, _services);
             var instanceId = await client
-                .StartNewAsync(nameof(Funcs.DurableFunctionWithExternalEventTimeout), null);
+                .StartNewAsync(nameof(Funcs.DurableFunctionWithExternalEventTimeout), TimeSpan.FromMilliseconds(5));
+
+            await client.WaitForOrchestrationToReachStatus(instanceId, OrchestrationRuntimeStatus.Failed);
+
+            var status = await client.GetStatusAsync(instanceId);
+
+            TestUtil.LogHistory(status, Console.Out);
+            Assert.AreEqual(OrchestrationRuntimeStatus.Failed, status.RuntimeStatus);
+        }
+
+        [TestMethod]
+        public async Task Can_timeshift_external_event_timeout()
+        {
+            var client = new InMemoryOrchestrationClient(typeof(Funcs).Assembly, _services);
+            var instanceId = await client
+                .StartNewAsync(nameof(Funcs.DurableFunctionWithExternalEventTimeout), TimeSpan.FromMinutes(1));
+
+            await client.Timeshift(instanceId, TimeSpan.FromMinutes(2));
 
             await client.WaitForOrchestrationToReachStatus(instanceId, OrchestrationRuntimeStatus.Failed);
 

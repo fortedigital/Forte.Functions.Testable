@@ -327,11 +327,11 @@ namespace Forte.Functions.Testable
             }
         }
 
-        public void ChangeCurrentUtcTime(TimeSpan change)
+        public void Timeshift(TimeSpan change)
         {
             _currentUtcDateTime = _currentUtcDateTime.Add(change);
 
-            for(var i = _activeTimers.Count-1; i >= 0; i--)
+            for (var i = _activeTimers.Count-1; i >= 0; i--)
             {
                 var timer = _activeTimers[i];
                 timer.TimeChanged(CurrentUtcDateTime);
@@ -363,13 +363,11 @@ namespace Forte.Functions.Testable
 
             try
             {
-                await Task.Delay(timeout, externalEventToken.Token);
+                await CreateTimer(CurrentUtcDateTime.Add(timeout), externalEventToken.Token);
                 throw new TimeoutException($"WaitForExternalEvent timed out after {timeout.TotalSeconds:0.###} seconds without receiving external event `{name}`");
             }
             catch (TaskCanceledException e)
-            {
-                if (e.CancellationToken != externalEventToken.Token) throw;
-            }
+            {}
 
             _externalEventTokens.Remove(name);
 

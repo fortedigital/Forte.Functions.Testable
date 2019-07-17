@@ -45,7 +45,7 @@ namespace Forte.Functions.Testable.Tests.InMemoryOrchestration
 
             var status = await client.GetStatusAsync(instanceId);
 
-            AssertHistoryEventOrder(status, EventType.ExecutionStarted, EventType.GenericEvent, EventType.GenericEvent,
+            AssertHistoryEventOrder(status, EventType.ExecutionStarted, EventType.GenericEvent, EventType.TimerCreated, EventType.GenericEvent,
                 EventType.ExecutionCompleted);
 
 

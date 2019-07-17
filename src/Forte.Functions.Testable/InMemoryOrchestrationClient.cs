@@ -217,9 +217,9 @@ namespace Forte.Functions.Testable
 
         public async Task Timeshift(string instanceId, TimeSpan change)
         {
-            if (!_instances.TryGetValue(instanceId, out var context)) throw new Exception("ChangeCurrentUtcTime found no instance with id " + instanceId);
+            if (!_instances.TryGetValue(instanceId, out var context)) throw new Exception("Timeshift found no instance with id " + instanceId);
 
-            context.ChangeCurrentUtcTime(change);
+            context.Timeshift(change);
         }
     }
 }
