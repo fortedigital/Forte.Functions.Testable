@@ -17,7 +17,8 @@ namespace Forte.Functions.Testable.Tests.InMemoryOrchestration.TestFunctions
         public static async Task DurableFunctionWithExternalEventTimeout(
             [OrchestrationTrigger] DurableOrchestrationContextBase context)
         {
-            await context.WaitForExternalEvent(ExternalEventName, TimeSpan.FromMilliseconds(5));
+            var timeout = context.GetInput<TimeSpan>();
+            await context.WaitForExternalEvent(ExternalEventName, timeout);
         }
 
         public const string ExternalEventName = "ev1";
