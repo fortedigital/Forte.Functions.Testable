@@ -42,7 +42,7 @@ namespace Forte.Functions.Testable
             try
             {
                 Output = await CallActivityFunctionByNameAsync(orchestratorFunctionName, input, reuseContext:true);
-            
+
                 Status = OrchestrationRuntimeStatus.Completed;
 
                 History.Add(new ExecutionCompletedEvent(History.Count, JsonConvert.SerializeObject(Output), OrchestrationStatus.Completed));
@@ -104,15 +104,26 @@ namespace Forte.Functions.Testable
 
             var parameters = ParametersForFunction(functionName, function, context).ToArray();
 
-            if (function.ReturnType.IsGenericType)
-            {
-                return await (dynamic) function.Invoke(instance, parameters);
-            }
-            else
+            var awaitableInfo = function.ReturnType.GetAwaitableInfo();
+
+            if (awaitableInfo.IsAwaitable && awaitableInfo.ResultType == typeof(void))
             {
                 await (dynamic) function.Invoke(instance, parameters);
                 return default;
             }
+
+            if (awaitableInfo.IsAwaitable)
+            {
+                return await (dynamic) function.Invoke(instance, parameters);
+            }
+
+            if (function.ReturnType == typeof(void))
+            {
+                function.Invoke(instance, parameters);
+                return default;
+            }
+
+            return function.Invoke(instance, parameters);
         }
 
         private IEnumerable<object> ParametersForFunction(string functionName, MethodInfo function, object context)
@@ -184,9 +195,9 @@ namespace Forte.Functions.Testable
 
         TimeSpan? ComputeNextDelay(int attempt, DateTime firstAttempt, Exception failure, RetryOptions retryOptions)
         {
-            // adapted from 
+            // adapted from
             // https://github.com/Azure/durabletask/blob/f9cc450539b5e37c97c19ae393d5bb1564fda7a8/src/DurableTask.Core/RetryInterceptor.cs
-           
+
             if (attempt >= retryOptions.MaxNumberOfAttempts) return null;
 
             if (!retryOptions.Handle(failure)) return null;
@@ -227,7 +238,7 @@ namespace Forte.Functions.Testable
 
                 var result = (TResult)subContext.Output;
 
-                History.Add(new SubOrchestrationInstanceCompletedEvent(History.Count, createdEvent.EventId, 
+                History.Add(new SubOrchestrationInstanceCompletedEvent(History.Count, createdEvent.EventId,
                     JsonConvert.SerializeObject(result)));
 
                 return result;
@@ -260,7 +271,7 @@ namespace Forte.Functions.Testable
                 History.Add(new GenericEvent(History.Count, $"Delaying {nextDelay.Value.TotalSeconds:0.###} seconds before retry attempt {attempt} for {functionName}"));
 
                 if(nextDelay.Value > TimeSpan.Zero)
-                { 
+                {
                     await CreateTimer(CurrentUtcDateTime.Add(nextDelay.Value), CancellationToken.None);
                 }
 
@@ -403,7 +414,7 @@ namespace Forte.Functions.Testable
                 Value = value;
                 Cancel(throwOnFirstException: false);
             }
-        } 
+        }
 
         public override void ContinueAsNew(object input)
         {

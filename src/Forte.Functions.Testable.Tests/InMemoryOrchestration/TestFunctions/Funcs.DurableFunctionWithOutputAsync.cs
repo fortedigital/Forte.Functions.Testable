@@ -20,7 +20,6 @@ namespace Forte.Functions.Testable.Tests.InMemoryOrchestration.TestFunctions
             return context.CallActivityAsync(nameof(ActivityVerifyingInput), new TestFunctionInput(){Token = "activity"});
         }
 
-
         [FunctionName(nameof(ActivityVerifyingInput))]
         public static Task ActivityVerifyingInput([ActivityTrigger] DurableActivityContextBase context)
         {
