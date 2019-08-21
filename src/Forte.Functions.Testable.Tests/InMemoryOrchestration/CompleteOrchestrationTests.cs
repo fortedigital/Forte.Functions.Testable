@@ -32,6 +32,21 @@ namespace Forte.Functions.Testable.Tests.InMemoryOrchestration
         }
 
         [TestMethod]
+        public async Task Can_execute_direct_bound_durable_activities()
+        {
+            var client = new InMemoryOrchestrationClient(typeof(Funcs).Assembly, _services);
+            var instanceId = await client
+                .StartNewAsync(nameof(Funcs.DurableFunctionWithDirectBinding), null);
+
+            await client.WaitForOrchestrationToReachStatus(instanceId, OrchestrationRuntimeStatus.Completed);
+
+            var status = await client.GetStatusAsync(instanceId);
+
+            TestUtil.LogHistory(status, Console.Out);
+            Assert.AreEqual(OrchestrationRuntimeStatus.Completed, status.RuntimeStatus);
+        }
+
+        [TestMethod]
         public async Task Can_execute_durable_function_with_output()
         {
             var input = new TestFunctionInput();

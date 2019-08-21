@@ -3,7 +3,7 @@ using Newtonsoft.Json.Linq;
 
 namespace Forte.Functions.Testable
 {
-    public class InMemoryActivityContext : DurableActivityContextBase
+    public class InMemoryActivityContext : DurableActivityContextBase, IInMemoryContextInput
     {
         private readonly DurableOrchestrationContextBase _parentContext;
 

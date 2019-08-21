@@ -17,7 +17,7 @@ using RetryOptions = Microsoft.Azure.WebJobs.RetryOptions;
 
 namespace Forte.Functions.Testable
 {
-    public class InMemoryOrchestrationContext : DurableOrchestrationContextBase
+    public class InMemoryOrchestrationContext : DurableOrchestrationContextBase, IInMemoryContextInput
     {
         private readonly InMemoryOrchestrationClient _client;
         private string _orchestratorFunctionName;
@@ -114,9 +114,9 @@ namespace Forte.Functions.Testable
                 ? null
                 : ActivatorUtilities.CreateInstance(_client.Services, function.DeclaringType);
 
-            object context = reuseContext
-                ? (object) this
-                : (object)new InMemoryActivityContext(this, input);
+            var context = reuseContext
+                ? (IInMemoryContextInput)this
+                : (IInMemoryContextInput)new InMemoryActivityContext(this, input);
 
             var parameters = ParametersForFunction(functionName, function, context).ToArray();
 
@@ -131,7 +131,7 @@ namespace Forte.Functions.Testable
             }
         }
 
-        private IEnumerable<object> ParametersForFunction(string functionName, MethodInfo function, object context)
+        private IEnumerable<object> ParametersForFunction(string functionName, MethodInfo function, IInMemoryContextInput context)
         {
             foreach(var parameter in function.GetParameters())
             {
@@ -162,6 +162,13 @@ namespace Forte.Functions.Testable
                         FunctionName = functionName,
                         InvocationId = Guid.NewGuid()
                     };
+                }
+                else if (parameter.GetCustomAttribute<ActivityTriggerAttribute>() != null)
+                {
+                    yield return typeof(IInMemoryContextInput)
+                        .GetMethod(nameof(IInMemoryContextInput.GetInput))
+                        ?.MakeGenericMethod(parameter.ParameterType)
+                        .Invoke(context, new object[0]);
                 }
                 else
                 {
