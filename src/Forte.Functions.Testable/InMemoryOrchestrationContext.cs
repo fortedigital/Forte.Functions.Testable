@@ -11,6 +11,7 @@ using Microsoft.Azure.WebJobs;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using ExecutionContext = Microsoft.Azure.WebJobs.ExecutionContext;
 using RetryOptions = Microsoft.Azure.WebJobs.RetryOptions;
 
@@ -20,7 +21,22 @@ namespace Forte.Functions.Testable
     {
         private readonly InMemoryOrchestrationClient _client;
         private string _orchestratorFunctionName;
-        public object Input { get; private set; }
+
+        private object _input;
+        private JToken _serializedInput = null;
+
+        public object Input
+        {
+            get => _input;
+            private set
+            {
+                _input = value;
+                _serializedInput = value == null
+                    ? JValue.CreateNull()
+                    : JToken.FromObject(value);
+            }
+        }
+
         public object Output { get; private set; }
 
         public InMemoryOrchestrationContext(InMemoryOrchestrationClient client)
@@ -42,7 +58,7 @@ namespace Forte.Functions.Testable
             try
             {
                 Output = await CallActivityFunctionByNameAsync(orchestratorFunctionName, input, reuseContext:true);
-            
+
                 Status = OrchestrationRuntimeStatus.Completed;
 
                 History.Add(new ExecutionCompletedEvent(History.Count, JsonConvert.SerializeObject(Output), OrchestrationStatus.Completed));
@@ -56,7 +72,7 @@ namespace Forte.Functions.Testable
 
         public override T GetInput<T>()
         {
-            return (T)Input;
+            return _serializedInput.ToObject<T>();
         }
 
         public override Guid NewGuid()
@@ -184,9 +200,9 @@ namespace Forte.Functions.Testable
 
         TimeSpan? ComputeNextDelay(int attempt, DateTime firstAttempt, Exception failure, RetryOptions retryOptions)
         {
-            // adapted from 
+            // adapted from
             // https://github.com/Azure/durabletask/blob/f9cc450539b5e37c97c19ae393d5bb1564fda7a8/src/DurableTask.Core/RetryInterceptor.cs
-           
+
             if (attempt >= retryOptions.MaxNumberOfAttempts) return null;
 
             if (!retryOptions.Handle(failure)) return null;
@@ -227,7 +243,7 @@ namespace Forte.Functions.Testable
 
                 var result = (TResult)subContext.Output;
 
-                History.Add(new SubOrchestrationInstanceCompletedEvent(History.Count, createdEvent.EventId, 
+                History.Add(new SubOrchestrationInstanceCompletedEvent(History.Count, createdEvent.EventId,
                     JsonConvert.SerializeObject(result)));
 
                 return result;
@@ -260,7 +276,7 @@ namespace Forte.Functions.Testable
                 History.Add(new GenericEvent(History.Count, $"Delaying {nextDelay.Value.TotalSeconds:0.###} seconds before retry attempt {attempt} for {functionName}"));
 
                 if(nextDelay.Value > TimeSpan.Zero)
-                { 
+                {
                     await CreateTimer(CurrentUtcDateTime.Add(nextDelay.Value), CancellationToken.None);
                 }
 
@@ -403,7 +419,7 @@ namespace Forte.Functions.Testable
                 Value = value;
                 Cancel(throwOnFirstException: false);
             }
-        } 
+        }
 
         public override void ContinueAsNew(object input)
         {
