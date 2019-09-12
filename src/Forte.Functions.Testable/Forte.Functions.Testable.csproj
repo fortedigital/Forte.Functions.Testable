@@ -7,14 +7,18 @@
     <Authors>Fredrik Kalseth</Authors>
     <Company>Forte Technology</Company>
     <Product />
-    <Version>1.0.11</Version>
+    <Version>1.1.0</Version>
     <PackageProjectUrl>https://github.com/fortedigital/Forte.Functions.Testable</PackageProjectUrl>
     <RepositoryUrl>https://github.com/fortedigital/Forte.Functions.Testable</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageTags>azure functions azure-functions azure-functions-v2 durable-functions unit-testing</PackageTags>
-    <AssemblyVersion>1.0.10.0</AssemblyVersion>
-    <FileVersion>1.0.10.0</FileVersion>
+    <AssemblyVersion>1.1.0.0</AssemblyVersion>
+    <FileVersion>1.1.0.0</FileVersion>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <Description>Changelog:
+
+1.1.0
+Adds support for non async activities (contrib by @kawazoe)</Description>
   </PropertyGroup>
 
   <ItemGroup>

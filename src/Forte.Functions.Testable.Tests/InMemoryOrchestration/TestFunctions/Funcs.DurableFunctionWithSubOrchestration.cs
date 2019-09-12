@@ -17,7 +17,7 @@ namespace Forte.Functions.Testable.Tests.InMemoryOrchestration.TestFunctions
         public static Task SubOrchestration(
             [OrchestrationTrigger] DurableOrchestrationContextBase context)
         {
-            return context.CallActivityAsync(nameof(AnActivity), null);
+            return context.CallActivityAsync(nameof(AnActivityAsync), null);
         }
     }
 }

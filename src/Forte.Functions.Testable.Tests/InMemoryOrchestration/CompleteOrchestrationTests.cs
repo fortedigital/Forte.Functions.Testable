@@ -14,7 +14,6 @@ namespace Forte.Functions.Testable.Tests.InMemoryOrchestration
         private IServiceProvider _services = new ServiceCollection().BuildServiceProvider();
 
         [TestMethod]
-
         public async Task Can_execute_durable_function()
         {
             var input = new TestFunctionInput();
@@ -31,6 +30,57 @@ namespace Forte.Functions.Testable.Tests.InMemoryOrchestration
             Assert.AreEqual(OrchestrationRuntimeStatus.Completed, status.RuntimeStatus);
         }
 
+        [TestMethod]
+        public async Task Can_execute_durable_function_async()
+        {
+            var input = new TestFunctionInputAsync();
+
+            var client = new InMemoryOrchestrationClient(typeof(Funcs).Assembly, _services);
+            var instanceId = await client
+                .StartNewAsync(nameof(Funcs.DurableFunctionWithOneActivityAsync), input);
+
+            await client.WaitForOrchestrationToReachStatus(instanceId, OrchestrationRuntimeStatus.Completed);
+
+            var status = await client.GetStatusAsync(instanceId);
+
+            TestUtil.LogHistory(status, Console.Out);
+            Assert.AreEqual(OrchestrationRuntimeStatus.Completed, status.RuntimeStatus);
+        }
+
+        [TestMethod]
+        public async Task Can_execute_durable_function_with_return()
+        {
+            var input = new TestFunctionInput();
+
+            var client = new InMemoryOrchestrationClient(typeof(Funcs).Assembly, _services);
+            var instanceId = await client
+                .StartNewAsync(nameof(Funcs.DurableFunctionWithOneActivityReturn), input);
+
+            await client.WaitForOrchestrationToReachStatus(instanceId, OrchestrationRuntimeStatus.Completed);
+
+            var status = await client.GetStatusAsync(instanceId);
+
+            TestUtil.LogHistory(status, Console.Out);
+            Assert.AreEqual(OrchestrationRuntimeStatus.Completed, status.RuntimeStatus);
+        }
+
+        [TestMethod]
+        public async Task Can_execute_durable_function_async_with_return()
+        {
+            var input = new TestFunctionInputAsync();
+
+            var client = new InMemoryOrchestrationClient(typeof(Funcs).Assembly, _services);
+            var instanceId = await client
+                .StartNewAsync(nameof(Funcs.DurableFunctionWithOneActivityAsyncReturn), input);
+          
+            await client.WaitForOrchestrationToReachStatus(instanceId, OrchestrationRuntimeStatus.Completed);
+
+            var status = await client.GetStatusAsync(instanceId);
+
+            TestUtil.LogHistory(status, Console.Out);
+            Assert.AreEqual(OrchestrationRuntimeStatus.Completed, status.RuntimeStatus);
+        }
+      
         [TestMethod]
         public async Task Can_execute_direct_bound_durable_activities()
         {

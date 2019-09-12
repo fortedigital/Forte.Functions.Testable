@@ -120,15 +120,26 @@ namespace Forte.Functions.Testable
 
             var parameters = ParametersForFunction(functionName, function, context).ToArray();
 
-            if (function.ReturnType.IsGenericType)
-            {
-                return await (dynamic) function.Invoke(instance, parameters);
-            }
-            else
+            var awaitableInfo = function.ReturnType.GetAwaitableInfo();
+
+            if (awaitableInfo.IsAwaitable && awaitableInfo.ResultType == typeof(void))
             {
                 await (dynamic) function.Invoke(instance, parameters);
                 return default;
             }
+
+            if (awaitableInfo.IsAwaitable)
+            {
+                return await (dynamic) function.Invoke(instance, parameters);
+            }
+
+            if (function.ReturnType == typeof(void))
+            {
+                function.Invoke(instance, parameters);
+                return default;
+            }
+
+            return function.Invoke(instance, parameters);
         }
 
         private IEnumerable<object> ParametersForFunction(string functionName, MethodInfo function, IInMemoryContextInput context)
