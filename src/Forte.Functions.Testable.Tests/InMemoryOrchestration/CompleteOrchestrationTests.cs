@@ -72,6 +72,21 @@ namespace Forte.Functions.Testable.Tests.InMemoryOrchestration
             var client = new InMemoryOrchestrationClient(typeof(Funcs).Assembly, _services);
             var instanceId = await client
                 .StartNewAsync(nameof(Funcs.DurableFunctionWithOneActivityAsyncReturn), input);
+          
+            await client.WaitForOrchestrationToReachStatus(instanceId, OrchestrationRuntimeStatus.Completed);
+
+            var status = await client.GetStatusAsync(instanceId);
+
+            TestUtil.LogHistory(status, Console.Out);
+            Assert.AreEqual(OrchestrationRuntimeStatus.Completed, status.RuntimeStatus);
+        }
+      
+        [TestMethod]
+        public async Task Can_execute_direct_bound_durable_activities()
+        {
+            var client = new InMemoryOrchestrationClient(typeof(Funcs).Assembly, _services);
+            var instanceId = await client
+                .StartNewAsync(nameof(Funcs.DurableFunctionWithDirectBinding), null);
 
             await client.WaitForOrchestrationToReachStatus(instanceId, OrchestrationRuntimeStatus.Completed);
 
@@ -116,6 +131,27 @@ namespace Forte.Functions.Testable.Tests.InMemoryOrchestration
 
             TestUtil.LogHistory(status, Console.Out);
             Assert.AreEqual(startInput.Token, endInput.Token, "Activity redefining input should not leak into orchestrator");
+        }
+
+        [TestMethod]
+        public async Task Functions_cannot_mutate_their_input_source()
+        {
+            var startInput = new TestFunctionInput{Token = "original"};
+
+            var client = new InMemoryOrchestrationClient(typeof(Funcs).Assembly, _services);
+            var instanceId = await client
+                .StartNewAsync(nameof(Funcs.DurableFunctionWithMutatedInput), startInput);
+
+            await client.WaitForOrchestrationToReachStatus(instanceId, OrchestrationRuntimeStatus.Completed);
+
+            var status = await client.GetStatusAsync(instanceId);
+
+            var endInput = status.Input.ToObject<TestFunctionInput>();
+
+            TestUtil.LogHistory(status, Console.Out);
+            Assert.AreEqual(OrchestrationRuntimeStatus.Completed, status.RuntimeStatus);
+
+            Assert.AreEqual(startInput.Token, endInput.Token, "Functions mutating inputs should not mutate their source");
         }
     }
 }
