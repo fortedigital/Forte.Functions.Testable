@@ -20,8 +20,9 @@ namespace Forte.Functions.Testable
     public class InMemoryOrchestrationContext : DurableOrchestrationContextBase, IInMemoryContextInput
     {
         private readonly InMemoryOrchestrationClient _client;
-        private string _orchestratorFunctionName;
 
+        private readonly string _instanceId;
+        private string _orchestratorFunctionName;
         private object _input;
         private JToken _serializedInput = null;
 
@@ -39,10 +40,13 @@ namespace Forte.Functions.Testable
 
         public object Output { get; private set; }
 
-        public InMemoryOrchestrationContext(InMemoryOrchestrationClient client)
+        public InMemoryOrchestrationContext(string instanceId, InMemoryOrchestrationClient client)
         {
             _client = client;
+            _instanceId = instanceId;
         }
+
+        public override string InstanceId => _instanceId;
 
         public async Task Run(string orchestratorFunctionName, object input)
         {
@@ -256,7 +260,7 @@ namespace Forte.Functions.Testable
 
             try
             {
-                var subContext = new InMemoryOrchestrationContext(_client);
+                var subContext = new InMemoryOrchestrationContext(instanceId, _client);
                 await subContext.Run(functionName, input);
 
                 var result = (TResult)subContext.Output;

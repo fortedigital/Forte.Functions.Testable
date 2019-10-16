@@ -27,6 +27,7 @@ namespace Forte.Functions.Testable
             _parentContext = parentContext;
             Input = input;
         }
+        public override string InstanceId => _parentContext.InstanceId;
 
         public override T GetInput<T>()
         {

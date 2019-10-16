@@ -67,14 +67,14 @@ namespace Forte.Functions.Testable
 
         public override async Task<string> StartNewAsync(string orchestratorFunctionName, string instanceId, object input)
         {
-            if (string.IsNullOrEmpty(instanceId)) instanceId = "instance-" + _instances.Count.ToString();
+            if (string.IsNullOrEmpty(instanceId)) instanceId = "instance-" + _instances.Count;
 
-            if (_instances.TryGetValue(instanceId, out var existing))
+            if (_instances.TryGetValue(instanceId, out _))
             {
-                await this.TerminateAsync(instanceId, null);
+                await TerminateAsync(instanceId, null);
             }
 
-            var context = new InMemoryOrchestrationContext(this);
+            var context = new InMemoryOrchestrationContext(instanceId, this);
             _instances.TryAdd(instanceId, context);
 
             context.Run(orchestratorFunctionName, input);

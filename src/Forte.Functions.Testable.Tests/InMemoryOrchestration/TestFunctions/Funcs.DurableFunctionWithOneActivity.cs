@@ -10,13 +10,19 @@ namespace Forte.Functions.Testable.Tests.InMemoryOrchestration.TestFunctions
         public static async Task DurableFunctionWithOneActivity(
             [OrchestrationTrigger] DurableOrchestrationContextBase context)
         {
+            Assert.IsNotNull(context);
+            Assert.IsNotNull(context.InstanceId);
+
             var input = context.GetInput<TestFunctionInput>();
+
             await context.CallActivityAsync(nameof(AnActivity), input);
         }
 
         [FunctionName(nameof(AnActivity))]
         public static void AnActivity([ActivityTrigger] DurableActivityContextBase context)
         {
+            Assert.IsNotNull(context);
+            Assert.IsNotNull(context.InstanceId);
         }
 
         [FunctionName(nameof(DurableFunctionWithOneActivityReturn))]
