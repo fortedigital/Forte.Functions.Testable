@@ -8,6 +8,8 @@ using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using DurableTask.Core;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Functions.Extensions.DependencyInjection;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.DurableTask;
@@ -64,7 +66,7 @@ namespace Forte.Functions.Testable
 
         readonly Dictionary<string, InMemoryOrchestrationContext> _instances = new Dictionary<string, InMemoryOrchestrationContext>();
 
-        public  Task<string> StartNewAsync(string orchestratorFunctionName, string instanceId, object input)
+        public Task<string> StartNewAsync<T>(string orchestratorFunctionName, string instanceId, T input)
         {
             if (string.IsNullOrEmpty(instanceId)) instanceId = "instance-" + _instances.Count.ToString();
             var context = new InMemoryOrchestrationContext(this);
@@ -222,7 +224,8 @@ namespace Forte.Functions.Testable
                 await Task.Delay(10);
                 totalWait = totalWait.Add(wait);
 
-                if (totalWait > maxWait) throw new TimeoutException("WaitForOrchestrationToReachStatus exceeded max wait time of " + maxWait);
+                if (totalWait > maxWait) throw new TimeoutException(
+                    $"WaitForOrchestrationToReachStatus {desiredStatus} exceeded max wait time of {maxWait} while status was {context.Status}");
             }
 
             return ToStatusObject(new KeyValuePair<string, InMemoryOrchestrationContext>(instanceId, context));
@@ -241,7 +244,7 @@ namespace Forte.Functions.Testable
                 await Task.Delay(wait);
                 totalWait = totalWait.Add(wait);
 
-                if (totalWait > maxWait) throw new TimeoutException("WaitForOrchestrationToExpectEvent exceeded max wait time of " + maxWait);
+                if (totalWait > maxWait) throw new TimeoutException($"WaitForOrchestrationToExpectEvent '{eventName}' exceeded max wait time of {maxWait} while status was {context.Status}");
             }
         }
 
@@ -280,6 +283,21 @@ namespace Forte.Functions.Testable
             if (!_entities.TryGetValue(entityId, out var entity)) throw new Exception("WaitForEntityDestruction found no entity with id " + entityId);
 
             return entity.WaitForNextStateChange(timeout);
+        }
+
+        public HttpResponseMessage CreateCheckStatusResponse(HttpRequestMessage request, string instanceId, bool returnInternalServerErrorOnFailure = false)
+        {
+            throw new NotImplementedException();
+        }
+
+        public IActionResult CreateCheckStatusResponse(HttpRequest request, string instanceId, bool returnInternalServerErrorOnFailure = false)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<IActionResult> WaitForCompletionOrCreateCheckStatusResponseAsync(HttpRequest request, string instanceId, TimeSpan timeout, TimeSpan retryInterval)
+        {
+            throw new NotImplementedException();
         }
     }
 }

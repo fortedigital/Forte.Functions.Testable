@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Net.Http;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
@@ -9,10 +10,11 @@ using DurableTask.Core;
 using DurableTask.Core.History;
 using Forte.Functions.Testable.Core;
 using Microsoft.Azure.WebJobs;
+using Microsoft.Azure.WebJobs.Extensions.DurableTask;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
-using RetryOptions = Microsoft.Azure.WebJobs.RetryOptions;
+using RetryOptions = Microsoft.Azure.WebJobs.Extensions.DurableTask.RetryOptions;
 
 namespace Forte.Functions.Testable
 {
@@ -44,7 +46,7 @@ namespace Forte.Functions.Testable
 
             try
             {
-                Output = await CallActivityFunctionByNameAsync(orchestratorFunctionName, input, reuseContext:true);
+                Output = await CallOrchestratorFunctionByNameAsync(orchestratorFunctionName);
             
                 Status = OrchestrationRuntimeStatus.Completed;
 
@@ -94,7 +96,7 @@ namespace Forte.Functions.Testable
             }
         }
 
-        private async Task<dynamic> CallActivityFunctionByNameAsync(string functionName, object input, bool reuseContext = false)
+        private async Task<dynamic> CallActivityFunctionByNameAsync(string functionName, object input)
         {
             var invoker = new Invoker(_client.FunctionsAssembly, _client.Services);
 
@@ -104,9 +106,24 @@ namespace Forte.Functions.Testable
                 ? null
                 : ActivatorUtilities.CreateInstance(_client.Services, function.DeclaringType);
 
-            var context = reuseContext
-                ? this
-                : (IDurableOrchestrationContext)new InMemoryActivityContext(this, input);
+            var context = (IDurableActivityContext)new InMemoryActivityContext(this, input);
+
+            var parameters = invoker.ParametersForFunction(function, context).ToArray();
+
+            return await invoker.InvokeFunction(function, instance, parameters);
+        }
+
+        private async Task<dynamic> CallOrchestratorFunctionByNameAsync(string functionName)
+        {
+            var invoker = new Invoker(_client.FunctionsAssembly, _client.Services);
+
+            var function = invoker.FindFunctionByName(functionName);
+
+            var instance = function.IsStatic
+                ? null
+                : ActivatorUtilities.CreateInstance(_client.Services, function.DeclaringType);
+
+            var context = (IDurableOrchestrationContext)this;
 
             var parameters = invoker.ParametersForFunction(function, context).ToArray();
 
@@ -328,6 +345,26 @@ namespace Forte.Functions.Testable
         public  void SetCustomStatus(object customStatusObject)
         {
             CustomStatus = customStatusObject;
+        }
+
+        public void SetOutput(object output)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<DurableHttpResponse> CallHttpAsync(HttpMethod method, Uri uri, string content = null)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<DurableHttpResponse> CallHttpAsync(DurableHttpRequest req)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void SignalEntity(EntityId entity, DateTime scheduledTimeUtc, string operationName, object operationInput = null)
+        {
+            throw new NotImplementedException();
         }
 
         public string InstanceId { get; private set; }

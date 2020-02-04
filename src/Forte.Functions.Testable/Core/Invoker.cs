@@ -5,6 +5,7 @@ using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Azure.WebJobs;
+using Microsoft.Azure.WebJobs.Extensions.DurableTask;
 
 namespace Forte.Functions.Testable.Core
 {
@@ -34,7 +35,8 @@ namespace Forte.Functions.Testable.Core
             foreach (var parameter in function.GetParameters())
             {
                 if (typeof(IDurableOrchestrationContext).IsAssignableFrom(parameter.ParameterType)
-                    || typeof(IDurableEntityContext).IsAssignableFrom(parameter.ParameterType))
+                    || typeof(IDurableEntityContext).IsAssignableFrom(parameter.ParameterType)
+                    || typeof(IDurableActivityContext).IsAssignableFrom(parameter.ParameterType))
                 {
                     yield return context;
                 }

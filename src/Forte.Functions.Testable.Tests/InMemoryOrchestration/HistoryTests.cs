@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using DurableTask.Core.History;
 using Forte.Functions.Testable.Tests.InMemoryOrchestration.TestFunctions;
 using Microsoft.Azure.WebJobs;
+using Microsoft.Azure.WebJobs.Extensions.DurableTask;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -18,18 +19,30 @@ namespace Forte.Functions.Testable.Tests.InMemoryOrchestration
         [TestMethod]
         public async Task Can_get_history_for_activity()
         {
+            
             var client = new InMemoryOrchestrationClient(typeof(Funcs).Assembly, _services);
             var instanceId = await client
                 .StartNewAsync(nameof(Funcs.DurableFunctionWithOneActivity), null);
 
-            await client.WaitForOrchestrationToReachStatus(instanceId, OrchestrationRuntimeStatus.Completed);
+            try
+            {
 
-            var status = await client.GetStatusAsync(instanceId);
+                await client.WaitForOrchestrationToReachStatus(instanceId, OrchestrationRuntimeStatus.Completed);
 
-            AssertHistoryEventOrder(status, EventType.ExecutionStarted, EventType.TaskScheduled, EventType.TaskCompleted,
-                EventType.ExecutionCompleted);
+                var status = await client.GetStatusAsync(instanceId);
 
-            Assert.AreEqual(OrchestrationRuntimeStatus.Completed, status.RuntimeStatus);
+                AssertHistoryEventOrder(status, EventType.ExecutionStarted, EventType.TaskScheduled,
+                    EventType.TaskCompleted,
+                    EventType.ExecutionCompleted);
+
+                Assert.AreEqual(OrchestrationRuntimeStatus.Completed, status.RuntimeStatus);
+            }
+            finally
+            {
+                var status = await client.GetStatusAsync(instanceId);
+                TestUtil.LogHistory(status, Console.Out);
+
+            }
         }
 
         [TestMethod]

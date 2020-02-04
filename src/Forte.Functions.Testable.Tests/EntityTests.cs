@@ -3,10 +3,11 @@ using System.Collections.Generic;
 using System.ComponentModel.Design;
 using System.Text;
 using System.Threading.Tasks;
-using Forte.Functions.Testable.Tests.InMemoryOrchestration.TestFunctions;
 using Microsoft.Azure.WebJobs;
+using Microsoft.Azure.WebJobs.Extensions.DurableTask;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Entity = Forte.Functions.Testable.Tests.InMemoryOrchestration.TestFunctions.Entity;
 
 namespace Forte.Functions.Testable.Tests
 {
@@ -36,6 +37,7 @@ namespace Forte.Functions.Testable.Tests
             var client = new InMemoryOrchestrationClient(typeof(Entity).Assembly, _services);
 
             var entityId = new EntityId("Entity", "1");
+
             await client.SignalEntityAsync(entityId, nameof(Entity.DestructOperation));
 
             var state = await client.ReadEntityStateAsync<bool>(entityId);

@@ -1,5 +1,6 @@
 ﻿using System.Threading.Tasks;
 using Microsoft.Azure.WebJobs;
+using Microsoft.Azure.WebJobs.Extensions.DurableTask;
 
 namespace Forte.Functions.Testable.Tests.InMemoryOrchestration.TestFunctions
 {
@@ -16,7 +17,7 @@ namespace Forte.Functions.Testable.Tests.InMemoryOrchestration.TestFunctions
         public static async Task DestructOperation(
             [EntityTrigger] IDurableEntityContext ctx)
         {
-            ctx.DestructOnExit();
+            ctx.DeleteState();
         }
     }
 }

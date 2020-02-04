@@ -7,6 +7,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using Forte.Functions.Testable.Core;
 using Microsoft.Azure.WebJobs;
+using Microsoft.Azure.WebJobs.Extensions.DurableTask;
+using Microsoft.Azure.WebJobs.Host.Bindings;
 
 namespace Forte.Functions.Testable
 {
@@ -78,6 +80,11 @@ namespace Forte.Functions.Testable
             _state = state;
         }
 
+        public void DeleteState()
+        {
+            _destruct = true;
+        }
+
         public T GetInput<T>()
         {
             return null != _input
@@ -95,20 +102,29 @@ namespace Forte.Functions.Testable
             _result = result;
         }
 
-        public void DestructOnExit()
-        {
-            _destruct = true;
-        }
-
         public void SignalEntity(EntityId entity, string operationName, object operationInput = null)
         {
             _queue.Enqueue(new Operation(entity, operationName, operationInput));
         }
 
+        public void SignalEntity(EntityId entity, DateTime scheduledTimeUtc, string operationName, object operationInput = null)
+        {
+            throw new NotImplementedException();
+        }
+
+        public string StartNewOrchestration(string functionName, object input, string instanceId = null)
+        {
+            throw new NotImplementedException();
+        }
+
         public string EntityName { get; }
+        public string EntityKey { get; }
+        public EntityId EntityId { get; private set; }
         public string Key { get; }
         public EntityId Self { get; }
         public string OperationName { get; private set; }
+        public FunctionBindingContext FunctionBindingContext { get; set; }
+        public bool HasState { get; }
         public bool IsNewlyConstructed { get; private set; }
         public bool IsDestructed { get; private set; }
 

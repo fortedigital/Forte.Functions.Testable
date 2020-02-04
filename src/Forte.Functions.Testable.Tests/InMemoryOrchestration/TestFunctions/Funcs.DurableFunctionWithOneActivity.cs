@@ -1,5 +1,6 @@
 using System.Threading.Tasks;
 using Microsoft.Azure.WebJobs;
+using Microsoft.Azure.WebJobs.Extensions.DurableTask;
 
 namespace Forte.Functions.Testable.Tests.InMemoryOrchestration.TestFunctions
 {
@@ -14,7 +15,7 @@ namespace Forte.Functions.Testable.Tests.InMemoryOrchestration.TestFunctions
         }
 
         [FunctionName(nameof(AnActivity))]
-        public static Task AnActivity([ActivityTrigger] IDurableOrchestrationContext context)
+        public static Task AnActivity([ActivityTrigger] IDurableActivityContext context)
         {
             return Task.CompletedTask;
         }

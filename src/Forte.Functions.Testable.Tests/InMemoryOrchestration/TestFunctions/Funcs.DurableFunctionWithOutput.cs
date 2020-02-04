@@ -1,5 +1,6 @@
 using System.Threading.Tasks;
 using Microsoft.Azure.WebJobs;
+using Microsoft.Azure.WebJobs.Extensions.DurableTask;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Forte.Functions.Testable.Tests.InMemoryOrchestration.TestFunctions
@@ -22,7 +23,7 @@ namespace Forte.Functions.Testable.Tests.InMemoryOrchestration.TestFunctions
 
 
         [FunctionName(nameof(ActivityVerifyingInput))]
-        public static Task ActivityVerifyingInput([ActivityTrigger] IDurableOrchestrationContext context)
+        public static Task ActivityVerifyingInput([ActivityTrigger] IDurableActivityContext context)
         {
             var input = context.GetInput<TestFunctionInput>();
             Assert.AreEqual("activity", input.Token);

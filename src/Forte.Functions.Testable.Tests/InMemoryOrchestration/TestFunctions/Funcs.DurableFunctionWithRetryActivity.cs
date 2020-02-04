@@ -2,6 +2,7 @@ using System;
 using System.Runtime.InteropServices.ComTypes;
 using System.Threading.Tasks;
 using Microsoft.Azure.WebJobs;
+using Microsoft.Azure.WebJobs.Extensions.DurableTask;
 
 namespace Forte.Functions.Testable.Tests.InMemoryOrchestration.TestFunctions
 {
@@ -28,7 +29,7 @@ namespace Forte.Functions.Testable.Tests.InMemoryOrchestration.TestFunctions
         }
 
         [FunctionName(nameof(FailAtGivenCallNoActivity))]
-        public static Task FailAtGivenCallNoActivity([ActivityTrigger] IDurableOrchestrationContext context)
+        public static Task FailAtGivenCallNoActivity([ActivityTrigger] IDurableActivityContext context)
         {
             var activitySetup = context.GetInput<RetryingActivitySetup>();
             activitySetup.Increment();

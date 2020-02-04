@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using DurableTask.Core.History;
 using Microsoft.Azure.WebJobs;
+using Microsoft.Azure.WebJobs.Extensions.DurableTask;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Forte.Functions.Testable
