@@ -1,6 +1,7 @@
 using System;
 using System.Threading.Tasks;
 using Microsoft.Azure.WebJobs;
+using Microsoft.Azure.WebJobs.Extensions.DurableTask;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Forte.Functions.Testable.Tests.InMemoryOrchestration.TestFunctions
@@ -16,7 +17,7 @@ namespace Forte.Functions.Testable.Tests.InMemoryOrchestration.TestFunctions
 
         [FunctionName(nameof(Function))]
         public async Task Function(
-            [OrchestrationTrigger] DurableOrchestrationContextBase context)
+            [OrchestrationTrigger] IDurableOrchestrationContext context)
         {
             Assert.IsNotNull(_foo);
         }

@@ -2,6 +2,7 @@ using System;
 using System.Threading.Tasks;
 using Forte.Functions.Testable.Tests.InMemoryOrchestration.TestFunctions;
 using Microsoft.Azure.WebJobs;
+using Microsoft.Azure.WebJobs.Extensions.DurableTask;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Newtonsoft.Json.Linq;
@@ -21,13 +22,20 @@ namespace Forte.Functions.Testable.Tests.InMemoryOrchestration
             var client = new InMemoryOrchestrationClient(typeof(Funcs).Assembly, _services);
             var instanceId = await client
                 .StartNewAsync(nameof(Funcs.DurableFunctionWithOneActivity), input);
+            
+            try
+            {
+                await client.WaitForOrchestrationToReachStatus(instanceId, OrchestrationRuntimeStatus.Completed);
 
-            await client.WaitForOrchestrationToReachStatus(instanceId, OrchestrationRuntimeStatus.Completed);
+                var status = await client.GetStatusAsync(instanceId);
 
-            var status = await client.GetStatusAsync(instanceId);
-
-            TestUtil.LogHistory(status, Console.Out);
-            Assert.AreEqual(OrchestrationRuntimeStatus.Completed, status.RuntimeStatus);
+                Assert.AreEqual(OrchestrationRuntimeStatus.Completed, status.RuntimeStatus);
+            }
+            finally
+            {
+                var status = await client.GetStatusAsync(instanceId);
+                TestUtil.LogHistory(status, Console.Out);
+            }
         }
 
         [TestMethod]

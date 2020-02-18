@@ -1,5 +1,6 @@
 using System.Threading.Tasks;
 using Microsoft.Azure.WebJobs;
+using Microsoft.Azure.WebJobs.Extensions.DurableTask;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Forte.Functions.Testable.Tests.InMemoryOrchestration.TestFunctions
@@ -8,7 +9,7 @@ namespace Forte.Functions.Testable.Tests.InMemoryOrchestration.TestFunctions
     {
         [FunctionName(nameof(DurableFunctionWithMutatedInput))]
         public static async Task DurableFunctionWithMutatedInput(
-            [OrchestrationTrigger] DurableOrchestrationContextBase context)
+            [OrchestrationTrigger] IDurableOrchestrationContext context)
         {
             var inputBeforeMutation = context.GetInput<TestFunctionInput>();
             inputBeforeMutation.Token = "mutated orchestrator";
@@ -22,7 +23,7 @@ namespace Forte.Functions.Testable.Tests.InMemoryOrchestration.TestFunctions
         }
 
         [FunctionName(nameof(AnActivityWithMutatedInput))]
-        public static Task AnActivityWithMutatedInput([ActivityTrigger] DurableActivityContextBase context)
+        public static Task AnActivityWithMutatedInput([ActivityTrigger] IDurableActivityContext context)
         {
             var inputBefore = context.GetInput<TestFunctionInput>();
 

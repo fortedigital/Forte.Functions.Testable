@@ -28,9 +28,9 @@ Adds support for non async activities (contrib by @kawazoe)</Description>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.Azure.DurableTask.Core" Version="2.1.0" />
+    <PackageReference Include="Microsoft.Azure.DurableTask.Core" Version="2.2.1" />
     <PackageReference Include="Microsoft.Azure.Functions.Extensions" Version="1.0.0" />
-    <PackageReference Include="Microsoft.Azure.WebJobs.Extensions.DurableTask" Version="1.8.0" />
+    <PackageReference Include="Microsoft.Azure.WebJobs.Extensions.DurableTask" Version="2.1.1" />
   </ItemGroup>
 
 </Project>
