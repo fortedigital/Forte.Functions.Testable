@@ -7,24 +7,17 @@
     <Authors>Fredrik Kalseth</Authors>
     <Company>Forte Technology</Company>
     <Product />
-    <Version>1.2.1</Version>
+    <Version>2.0</Version>
     <PackageProjectUrl>https://github.com/fortedigital/Forte.Functions.Testable</PackageProjectUrl>
     <RepositoryUrl>https://github.com/fortedigital/Forte.Functions.Testable</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageTags>azure functions azure-functions azure-functions-v2 durable-functions unit-testing</PackageTags>
-    <AssemblyVersion>1.2.1.0</AssemblyVersion>
-    <FileVersion>1.2.1.0</FileVersion>
+    <AssemblyVersion>2.0.0.0</AssemblyVersion>
+    <FileVersion>2.0.0.0</FileVersion>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <Description>Changelog:
-
-1.2.1
-Fixes bug where context.InstanceId was null.
-
-1.2.0
-Adds support for ActivityTrigger inputs with JSON serialization to decouple models (contrib by @kawazoe)
-
-1.1.0
-Adds support for non async activities (contrib by @kawazoe)</Description>
+2.0
+Durable Functions 2.0 support. No support for Durable Entities as of yet.</Description>
   </PropertyGroup>
 
   <ItemGroup>

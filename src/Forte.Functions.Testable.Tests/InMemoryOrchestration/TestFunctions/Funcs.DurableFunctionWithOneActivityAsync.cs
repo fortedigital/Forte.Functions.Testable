@@ -16,7 +16,7 @@ namespace Forte.Functions.Testable.Tests.InMemoryOrchestration.TestFunctions
         }
 
         [FunctionName(nameof(AnActivityAsync))]
-        public static Task AnActivityAsync([ActivityTrigger] IDurableActivityContext context)
+        public static Task AnActivityAsync([ActivityTrigger] IDurableActivityContext _)
         {
             return Task.CompletedTask;
         }
@@ -31,7 +31,7 @@ namespace Forte.Functions.Testable.Tests.InMemoryOrchestration.TestFunctions
         }
 
         [FunctionName(nameof(AnActivityAsyncReturn))]
-        public static Task<string> AnActivityAsyncReturn([ActivityTrigger] IDurableActivityContext context)
+        public static Task<string> AnActivityAsyncReturn([ActivityTrigger] IDurableActivityContext _)
         {
             return Task.FromResult("OK");
         }
