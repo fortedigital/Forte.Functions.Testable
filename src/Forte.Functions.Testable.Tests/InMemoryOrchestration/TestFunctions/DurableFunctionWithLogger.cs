@@ -1,5 +1,6 @@
 using System.Threading.Tasks;
 using Microsoft.Azure.WebJobs;
+using Microsoft.Azure.WebJobs.Extensions.DurableTask;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -16,7 +17,7 @@ namespace Forte.Functions.Testable.Tests.InMemoryOrchestration.TestFunctions
 
         [FunctionName(nameof(LoggerFn))]
         public async Task LoggerFn(
-            [OrchestrationTrigger] DurableOrchestrationContextBase context, ILogger logger)
+            [OrchestrationTrigger] IDurableOrchestrationContext context, ILogger logger)
         {
             Assert.IsNotNull(logger, "Logger injected into function was null");
 

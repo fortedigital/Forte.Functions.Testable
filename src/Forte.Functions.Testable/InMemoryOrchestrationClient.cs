@@ -9,16 +9,14 @@ using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using DurableTask.Core;
-using Microsoft.Azure.Functions.Extensions.DependencyInjection;
-using Microsoft.Azure.WebJobs;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.WebJobs.Extensions.DurableTask;
-using Microsoft.Extensions.DependencyInjection;
-using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
 namespace Forte.Functions.Testable
 {
-    public class InMemoryOrchestrationClient : DurableOrchestrationClientBase
+    public class InMemoryOrchestrationClient : IDurableOrchestrationClient
     {
         public Assembly FunctionsAssembly { get; }
         public IServiceProvider Services { get; }
@@ -36,20 +34,24 @@ namespace Forte.Functions.Testable
             Services = services;
         }
 
-        public override HttpResponseMessage CreateCheckStatusResponse(HttpRequestMessage request, string instanceId)
+        public HttpResponseMessage CreateCheckStatusResponse(HttpRequestMessage request, string instanceId,
+            bool returnInternalServerErrorOnFailure = false)
         {
             return new HttpResponseMessage(HttpStatusCode.OK);
         }
 
-        public override HttpManagementPayload CreateHttpManagementPayload(string instanceId)
+        public IActionResult CreateCheckStatusResponse(HttpRequest request, string instanceId,
+            bool returnInternalServerErrorOnFailure = false)
+        {
+            return new StatusCodeResult(200);
+        }
+
+        public HttpManagementPayload CreateHttpManagementPayload(string instanceId)
         {
             return new HttpManagementPayload();
         }
 
-        public override async Task<HttpResponseMessage> WaitForCompletionOrCreateCheckStatusResponseAsync(
-            HttpRequestMessage request, 
-            string instanceId, 
-            TimeSpan timeout,
+        public async Task<HttpResponseMessage> WaitForCompletionOrCreateCheckStatusResponseAsync(HttpRequestMessage request, string instanceId, TimeSpan timeout,
             TimeSpan retryInterval)
         {
             try
@@ -57,7 +59,7 @@ namespace Forte.Functions.Testable
                 await WaitForOrchestrationToReachStatus(instanceId, OrchestrationRuntimeStatus.Completed, timeout);
                 return new HttpResponseMessage(HttpStatusCode.OK);
             }
-            catch(TimeoutException)
+            catch (TimeoutException)
             {
                 return CreateCheckStatusResponse(request, instanceId);
             }
@@ -65,7 +67,13 @@ namespace Forte.Functions.Testable
 
         readonly ConcurrentDictionary<string, InMemoryOrchestrationContext> _instances = new ConcurrentDictionary<string, InMemoryOrchestrationContext>();
 
-        public override async Task<string> StartNewAsync(string orchestratorFunctionName, string instanceId, object input)
+        public Task<IActionResult> WaitForCompletionOrCreateCheckStatusResponseAsync(HttpRequest request, string instanceId, TimeSpan timeout,
+            TimeSpan retryInterval)
+        {
+            throw new NotImplementedException();
+        }
+
+        public async Task<string> StartNewAsync<T>(string orchestratorFunctionName, string instanceId, T input)
         {
             if (string.IsNullOrEmpty(instanceId)) instanceId = "instance-" + _instances.Count;
 
@@ -74,7 +82,7 @@ namespace Forte.Functions.Testable
                 await TerminateAsync(instanceId, null);
             }
 
-            var context = new InMemoryOrchestrationContext(instanceId, this);
+            var context = new InMemoryOrchestrationContext(instanceId, null, this);
             _instances.TryAdd(instanceId, context);
 
             context.Run(orchestratorFunctionName, input);
@@ -82,12 +90,12 @@ namespace Forte.Functions.Testable
             return instanceId;
         }
 
-        public override Task RaiseEventAsync(string instanceId, string eventName, object eventData)
+        public Task RaiseEventAsync(string instanceId, string eventName, object eventData)
         {
             return RaiseEventAsync(TaskHubName, instanceId, eventName, eventData);
         }
 
-        public override Task RaiseEventAsync(string taskHubName, string instanceId, string eventName, object eventData,
+        public Task RaiseEventAsync(string taskHubName, string instanceId, string eventName, object eventData,
             string connectionName = null)
         {
             if (!_instances.TryGetValue(instanceId, out var context)) throw new Exception("RaiseEventAsync found no instance with id " + instanceId);
@@ -96,55 +104,34 @@ namespace Forte.Functions.Testable
             return Task.CompletedTask;
         }
 
-        public override Task TerminateAsync(string instanceId, string reason)
+        public Task TerminateAsync(string instanceId, string reason)
         {
-            _instances.Remove(instanceId, out var _); 
+            _instances.Remove(instanceId, out var _);
             return Task.CompletedTask;
         }
 
-        public override Task RewindAsync(string instanceId, string reason)
+        public Task RewindAsync(string instanceId, string reason)
         {
             throw new NotImplementedException();
         }
 
-        public override Task<DurableOrchestrationStatus> GetStatusAsync(string instanceId, bool showHistory, bool showHistoryOutput, bool showInput = true)
+        public Task<DurableOrchestrationStatus> GetStatusAsync(string instanceId, bool showHistory = true, bool showHistoryOutput = true, bool showInput = true)
         {
             if (!_instances.TryGetValue(instanceId, out var context))
                 return Task.FromResult<DurableOrchestrationStatus>(null);
 
             return Task.FromResult(ToStatusObject(new KeyValuePair<string, InMemoryOrchestrationContext>(instanceId, context)));
+
         }
 
-        public override Task<IList<DurableOrchestrationStatus>> GetStatusAsync(CancellationToken cancellationToken = new CancellationToken())
+        public Task<IList<DurableOrchestrationStatus>> GetStatusAsync(CancellationToken cancellationToken = new CancellationToken())
         {
             var list = _instances.ToList().Select(ToStatusObject).ToList();
 
             return Task.FromResult((IList<DurableOrchestrationStatus>)list);
         }
 
-        private DurableOrchestrationStatus ToStatusObject(KeyValuePair<string, InMemoryOrchestrationContext> i)
-        {
-            return new DurableOrchestrationStatus
-            {
-                CreatedTime = i.Value.CreatedTime,
-                CustomStatus = null == i.Value.CustomStatus 
-                    ? null 
-                    :  JToken.FromObject(i.Value.CustomStatus),
-                History = JArray.FromObject(i.Value.History.ToArray()),
-                Input = null == i.Value.Input 
-                    ? null 
-                    : JToken.FromObject(i.Value.Input),
-                InstanceId = i.Key,
-                LastUpdatedTime = i.Value.CurrentUtcDateTime,
-                Name = i.Value.Name,
-                RuntimeStatus = i.Value.Status,
-                Output = null == i.Value.Output 
-                    ? null 
-                    : JToken.FromObject(i.Value.Output)
-            };
-        }
-
-        public override Task<IList<DurableOrchestrationStatus>> GetStatusAsync(DateTime createdTimeFrom, DateTime? createdTimeTo, IEnumerable<OrchestrationRuntimeStatus> runtimeStatus,
+        public Task<IList<DurableOrchestrationStatus>> GetStatusAsync(DateTime createdTimeFrom, DateTime? createdTimeTo, IEnumerable<OrchestrationRuntimeStatus> runtimeStatus,
             CancellationToken cancellationToken = new CancellationToken())
         {
             var list = _instances.Where(i =>
@@ -157,27 +144,50 @@ namespace Forte.Functions.Testable
             return Task.FromResult((IList<DurableOrchestrationStatus>)list);
         }
 
-        public override async Task<OrchestrationStatusQueryResult> GetStatusAsync(DateTime createdTimeFrom, DateTime? createdTimeTo, IEnumerable<OrchestrationRuntimeStatus> runtimeStatus, int pageSize,
-            string continuationToken, CancellationToken cancellationToken = new CancellationToken())
+        public Task<PurgeHistoryResult> PurgeInstanceHistoryAsync(string instanceId)
         {
             throw new NotImplementedException();
         }
 
-        public override Task<PurgeHistoryResult> PurgeInstanceHistoryAsync(string instanceId)
+        public Task<PurgeHistoryResult> PurgeInstanceHistoryAsync(DateTime createdTimeFrom, DateTime? createdTimeTo, IEnumerable<OrchestrationStatus> runtimeStatus)
         {
             throw new NotImplementedException();
         }
 
-        public override Task<PurgeHistoryResult> PurgeInstanceHistoryAsync(DateTime createdTimeFrom, DateTime? createdTimeTo, IEnumerable<OrchestrationStatus> runtimeStatus)
+        public Task<OrchestrationStatusQueryResult> GetStatusAsync(OrchestrationStatusQueryCondition condition, CancellationToken cancellationToken)
         {
             throw new NotImplementedException();
         }
 
-        public override string TaskHubName => "testhub";
+        public string TaskHubName { get; } = "testhub";
+
 
         private TimeSpan DefaultTimeout => Debugger.IsAttached
             ? TimeSpan.FromMinutes(5)
             : TimeSpan.FromSeconds(1);
+
+
+        private DurableOrchestrationStatus ToStatusObject(KeyValuePair<string, InMemoryOrchestrationContext> i)
+        {
+            return new DurableOrchestrationStatus
+            {
+                CreatedTime = i.Value.CreatedTime,
+                CustomStatus = null == i.Value.CustomStatus
+                    ? null
+                    : JToken.FromObject(i.Value.CustomStatus),
+                History = JArray.FromObject(i.Value.History.ToArray()),
+                Input = null == i.Value.Input
+                    ? null
+                    : JToken.FromObject(i.Value.Input),
+                InstanceId = i.Key,
+                LastUpdatedTime = i.Value.CurrentUtcDateTime,
+                Name = i.Value.Name,
+                RuntimeStatus = i.Value.Status,
+                Output = null == i.Value.Output
+                    ? null
+                    : JToken.FromObject(i.Value.Output)
+            };
+        }
 
         public async Task<DurableOrchestrationStatus> WaitForOrchestrationToReachStatus(string instanceId, OrchestrationRuntimeStatus desiredStatus, TimeSpan? timeout = null)
         {
@@ -200,7 +210,7 @@ namespace Forte.Functions.Testable
 
         public async Task WaitForOrchestrationToExpectEvent(string instanceId, string eventName, TimeSpan? timeout = null)
         {
-            if(!_instances.TryGetValue(instanceId, out var context)) throw new Exception("WaitForOrchestrationToExpectEvent found no instance with id " + instanceId);
+            if (!_instances.TryGetValue(instanceId, out var context)) throw new Exception("WaitForOrchestrationToExpectEvent found no instance with id " + instanceId);
 
             var totalWait = TimeSpan.Zero;
             var maxWait = timeout ?? DefaultTimeout;

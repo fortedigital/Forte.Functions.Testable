@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.Azure.WebJobs;
+using Microsoft.Azure.WebJobs.Extensions.DurableTask;
 
 namespace Forte.Functions.Testable.Tests.InMemoryOrchestration.TestFunctions
 {
@@ -57,7 +58,7 @@ namespace Forte.Functions.Testable.Tests.InMemoryOrchestration.TestFunctions
     {
         [FunctionName(nameof(DurableFunctionWithRetrySucceedingActivity))]
         public static async Task DurableFunctionWithRetrySucceedingActivity(
-            [OrchestrationTrigger] DurableOrchestrationContextBase context)
+            [OrchestrationTrigger] IDurableOrchestrationContext context)
         {
             using (var tracker = FuncRetryTracker.Track())
             {
@@ -75,7 +76,7 @@ namespace Forte.Functions.Testable.Tests.InMemoryOrchestration.TestFunctions
 
         [FunctionName(nameof(DurableFunctionWithRetryFailingActivity))]
         public static async Task DurableFunctionWithRetryFailingActivity(
-            [OrchestrationTrigger] DurableOrchestrationContextBase context)
+            [OrchestrationTrigger] IDurableOrchestrationContext context)
         {
             using (var tracker = FuncRetryTracker.Track()) {
                 await context.CallActivityWithRetryAsync(
@@ -90,7 +91,7 @@ namespace Forte.Functions.Testable.Tests.InMemoryOrchestration.TestFunctions
         }
 
         [FunctionName(nameof(FailAtGivenCallNoActivity))]
-        public static Task FailAtGivenCallNoActivity([ActivityTrigger] DurableActivityContextBase context)
+        public static Task FailAtGivenCallNoActivity([ActivityTrigger] IDurableActivityContext context)
         {
             var activitySetup = context.GetInput<RetryingActivitySetup>();
             var tracker = FuncRetryTracker.GetTracker(activitySetup.TrackerId);

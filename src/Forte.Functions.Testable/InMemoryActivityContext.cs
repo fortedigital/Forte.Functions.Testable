@@ -1,11 +1,12 @@
 using Microsoft.Azure.WebJobs;
+using Microsoft.Azure.WebJobs.Extensions.DurableTask;
 using Newtonsoft.Json.Linq;
 
 namespace Forte.Functions.Testable
 {
-    public class InMemoryActivityContext : DurableActivityContextBase, IInMemoryContextInput
+    public class InMemoryActivityContext : IDurableActivityContext, IInMemoryContextInput
     {
-        private readonly DurableOrchestrationContextBase _parentContext;
+        private readonly IDurableOrchestrationContext _parentContext;
 
         private object _input;
         private JToken _serializedInput;
@@ -22,14 +23,14 @@ namespace Forte.Functions.Testable
             }
         }
 
-        public InMemoryActivityContext(DurableOrchestrationContextBase parentContext, object input)
+        public InMemoryActivityContext(IDurableOrchestrationContext parentContext, object input)
         {
             _parentContext = parentContext;
             Input = input;
         }
-        public override string InstanceId => _parentContext.InstanceId;
+        public string InstanceId => _parentContext.InstanceId;
 
-        public override T GetInput<T>()
+        public T GetInput<T>()
         {
             return _serializedInput.ToObject<T>();
         }

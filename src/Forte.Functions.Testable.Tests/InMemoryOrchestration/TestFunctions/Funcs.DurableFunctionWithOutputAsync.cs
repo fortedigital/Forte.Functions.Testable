@@ -1,5 +1,6 @@
 using System.Threading.Tasks;
 using Microsoft.Azure.WebJobs;
+using Microsoft.Azure.WebJobs.Extensions.DurableTask;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Forte.Functions.Testable.Tests.InMemoryOrchestration.TestFunctions
@@ -8,20 +9,20 @@ namespace Forte.Functions.Testable.Tests.InMemoryOrchestration.TestFunctions
     {
         [FunctionName(nameof(DurableFunctionWithOutput))]
         public static Task<string> DurableFunctionWithOutput(
-            [OrchestrationTrigger] DurableOrchestrationContextBase context)
+            [OrchestrationTrigger] IDurableOrchestrationContext context)
         {
             return Task.FromResult("OK");
         }
 
         [FunctionName(nameof(DurableFunctionWithSeparateActivityInput))]
         public static Task DurableFunctionWithSeparateActivityInput(
-            [OrchestrationTrigger] DurableOrchestrationContextBase context)
+            [OrchestrationTrigger] IDurableOrchestrationContext context)
         {
             return context.CallActivityAsync(nameof(ActivityVerifyingInput), new TestFunctionInput(){Token = "activity"});
         }
 
         [FunctionName(nameof(ActivityVerifyingInput))]
-        public static Task ActivityVerifyingInput([ActivityTrigger] DurableActivityContextBase context)
+        public static Task ActivityVerifyingInput([ActivityTrigger] IDurableActivityContext context)
         {
             var input = context.GetInput<TestFunctionInput>();
             Assert.AreEqual("activity", input.Token);

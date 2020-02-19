@@ -2,6 +2,7 @@ using System;
 using System.Threading.Tasks;
 using Forte.Functions.Testable.Tests.InMemoryOrchestration.TestFunctions;
 using Microsoft.Azure.WebJobs;
+using Microsoft.Azure.WebJobs.Extensions.DurableTask;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -40,7 +41,7 @@ namespace Forte.Functions.Testable.Tests.InMemoryOrchestration
         {
             var client = new InMemoryOrchestrationClient(typeof(Funcs).Assembly, _services);
             var instanceId = await client
-                .StartNewAsync(nameof(Funcs.DurableFunctionWithExternalEventTimeout), TimeSpan.FromMilliseconds(5));
+                .StartNewAsync(nameof(Funcs.DurableFunctionWithExternalEventTimeout), TimeSpanInput.FromMilliseconds(5));
 
             await client.WaitForOrchestrationToReachStatus(instanceId, OrchestrationRuntimeStatus.Failed);
 
@@ -55,7 +56,7 @@ namespace Forte.Functions.Testable.Tests.InMemoryOrchestration
         {
             var client = new InMemoryOrchestrationClient(typeof(Funcs).Assembly, _services);
             var instanceId = await client
-                .StartNewAsync(nameof(Funcs.DurableFunctionWithExternalEventTimeout), TimeSpan.FromMinutes(1));
+                .StartNewAsync(nameof(Funcs.DurableFunctionWithExternalEventTimeout), TimeSpanInput.FromMinutes(1));
 
             await client.Timeshift(instanceId, TimeSpan.FromMinutes(2));
 
