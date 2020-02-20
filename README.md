@@ -6,7 +6,7 @@ In-memory orchestration for testing Durable Functions
 [![Nuget](https://img.shields.io/nuget/v/Forte.Functions.Testable.svg?label=NuGet)](https://www.nuget.org/packages/Forte.Functions.Testable/)
 
 
-By leveraging DurableOrchestrationClientBase, this project implements InMemoryOrchestrationClient which allows durable functions to be executed in-memory and observed with no mocking. For example, you could write a test such as:
+By leveraging `IDurableOrchestrationClient` and the related interfaces, this project implements an `InMemoryOrchestrationClient` which allows durable functions to be executed in-memory and observed with no mocking. For example, you could write a test such as:
 
 ```c#
 [TestMethod]
@@ -31,4 +31,6 @@ Tests can use the `WaitForOrchestrationToReachStatus`, `WaitForOrchestrationToEx
 Contrast this with the approach suggested in https://docs.microsoft.com/en-us/azure/azure-functions/durable/durable-functions-unit-testing which requires a lot of brittle mocking/setup to accomplish this.
 
 
-The implementation is currently a proof-of-concept and supports most features of durable functions including activities, retries, sub-orchestrations, external events etc. The major difference is of course that this orchestration client does not have the replay-behavior of durable functions, but simply executes the durable function in-memory with async/await-like behavior. 
+The implementation supports most features of durable functions including activities, retries, sub-orchestrations, external events etc. The major difference is of course that this orchestration client does not have the replay-behavior of durable functions, but simply executes the durable function in-memory with async/await-like behavior. 
+
+Note: Durable Entities are not yet supported and will throw `NotImplementedException`s.
