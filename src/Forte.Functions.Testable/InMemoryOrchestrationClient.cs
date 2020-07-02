@@ -159,6 +159,14 @@ namespace Forte.Functions.Testable
             throw new NotImplementedException();
         }
 
+        public Task<OrchestrationStatusQueryResult> ListInstancesAsync(OrchestrationStatusQueryCondition condition, CancellationToken cancellationToken)
+        {
+            return Task.FromResult(new OrchestrationStatusQueryResult
+            {
+                DurableOrchestrationState = _instances.Select(ToStatusObject).ToArray()
+            });
+        }
+
         public string TaskHubName { get; } = "testhub";
 
 

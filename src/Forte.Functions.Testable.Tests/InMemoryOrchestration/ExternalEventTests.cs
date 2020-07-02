@@ -1,4 +1,5 @@
 using System;
+using System.Threading;
 using System.Threading.Tasks;
 using Forte.Functions.Testable.Tests.InMemoryOrchestration.TestFunctions;
 using Microsoft.Azure.WebJobs;
@@ -52,6 +53,34 @@ namespace Forte.Functions.Testable.Tests.InMemoryOrchestration
         }
 
         [TestMethod]
+        public async Task Can_cancel_external_event()
+        {
+            var client = new InMemoryOrchestrationClient(typeof(Funcs).Assembly, _services);
+
+            var input = TimeSpanInput.FromMinutes(1);
+            var ct = new CancellationTokenSource();
+            ct.Token.Register(() =>
+            {
+                Console.WriteLine("cancelled");
+            });
+            TimeSpanInput.Token = ct.Token;
+
+            var instanceId = await client
+                .StartNewAsync(nameof(Funcs.DurableFunctionWithExternalEventTimeoutCancel), input);
+
+            await Task.Delay(10);
+
+            ct.Cancel(false);
+
+            await client.WaitForOrchestrationToReachStatus(instanceId, OrchestrationRuntimeStatus.Completed);
+
+            var status = await client.GetStatusAsync(instanceId);
+
+            TestUtil.LogHistory(status, Console.Out);
+            Assert.AreEqual(OrchestrationRuntimeStatus.Completed, status.RuntimeStatus);
+        }
+
+        [TestMethod]
         public async Task Can_timeshift_external_event_timeout()
         {
             var client = new InMemoryOrchestrationClient(typeof(Funcs).Assembly, _services);
@@ -64,7 +93,7 @@ namespace Forte.Functions.Testable.Tests.InMemoryOrchestration
 
             var status = await client.GetStatusAsync(instanceId);
 
-            TestUtil.LogHistory(status, Console.Out);
+            TestUtil.LogHistory(status, Console.Out, true);
             Assert.AreEqual(OrchestrationRuntimeStatus.Failed, status.RuntimeStatus);
         }
     }

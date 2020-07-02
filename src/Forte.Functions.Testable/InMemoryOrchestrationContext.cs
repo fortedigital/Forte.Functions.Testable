@@ -248,32 +248,15 @@ namespace Forte.Functions.Testable
 
         public Task<T> WaitForExternalEvent<T>(string name)
         {
-            return WaitForExternalEvent<T>(name, DefaultTimeout);
+            return WaitForExternalEvent<T>(name, TimeSpan.FromDays(7), default, CancellationToken.None);
         }
 
-        public Task<T> WaitForExternalEvent<T>(string name, TimeSpan timeout)
+        public Task<T> WaitForExternalEvent<T>(string name, TimeSpan timeout, CancellationToken cancelToken)
         {
-            return WaitForExternalEvent<T>(name, timeout, default);
+            return WaitForExternalEvent<T>(name, timeout, default, cancelToken);
         }
 
-        readonly Dictionary<string, ExternalEventToken> _externalEventTokens = new Dictionary<string, ExternalEventToken>();
-
-        class ExternalEventToken : CancellationTokenSource
-        {
-            public ExternalEventToken()
-            {
-            }
-
-            public object Value { get; private set; }
-
-            public void Notify(object value)
-            {
-                Value = value;
-                Cancel(throwOnFirstException: false);
-            }
-        }
-
-        public async Task<T> WaitForExternalEvent<T>(string name, TimeSpan timeout, T defaultValue)
+        public async Task<T> WaitForExternalEvent<T>(string name, TimeSpan timeout, T defaultValue, CancellationToken cancelToken)
         {
             History.Add(new GenericEvent(History.Count, $"Waiting for external event `{name}`"));
 
@@ -282,16 +265,40 @@ namespace Forte.Functions.Testable
 
             try
             {
-                await CreateTimer(CurrentUtcDateTime.Add(timeout), (object)null, externalEventToken.Token);
-                throw new TimeoutException($"WaitForExternalEvent timed out after {timeout.TotalSeconds:0.###} seconds without receiving external event `{name}`");
+                var ct = CancellationTokenSource.CreateLinkedTokenSource(cancelToken, externalEventToken.Token).Token;
+
+                await CreateTimer(CurrentUtcDateTime.Add(timeout), (object) null, ct);
+                
+                throw new TimeoutException(
+                    $"WaitForExternalEvent timed out after {timeout.TotalSeconds:0.###} seconds without receiving external event `{name}`");
             }
             catch (TaskCanceledException e)
-            { }
+            {
+                if (e.CancellationToken == cancelToken)
+                {
+                    throw;
+                }
+            }
 
             _externalEventTokens.Remove(name);
 
             if (null != externalEventToken.Value) return (T)externalEventToken.Value;
             return defaultValue;
+        }
+
+        readonly Dictionary<string, ExternalEventToken> _externalEventTokens = new Dictionary<string, ExternalEventToken>();
+
+        class ExternalEventToken : CancellationTokenSource
+        {
+            public bool WasCancelled { get; private set; }
+
+            public object Value { get; private set; }
+
+            public void Notify(object value)
+            {
+                Value = value;
+                Cancel(throwOnFirstException: false);
+            }
         }
         public void NotifyExternalEvent(string name, object data)
         {
