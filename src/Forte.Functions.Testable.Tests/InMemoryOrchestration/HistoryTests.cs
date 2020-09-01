@@ -41,7 +41,7 @@ namespace Forte.Functions.Testable.Tests.InMemoryOrchestration
                 .StartNewAsync(nameof(Funcs.DurableFunctionWithExternalEvent), null);
 
             await client.WaitForOrchestrationToExpectEvent(instanceId, Funcs.ExternalEventName);
-            await client.RaiseEventAsync(instanceId, Funcs.ExternalEventName);
+            await client.RaiseEventAsync(instanceId, Funcs.ExternalEventName, null);
             await client.WaitForOrchestrationToReachStatus(instanceId, OrchestrationRuntimeStatus.Completed);
 
             var status = await client.GetStatusAsync(instanceId);

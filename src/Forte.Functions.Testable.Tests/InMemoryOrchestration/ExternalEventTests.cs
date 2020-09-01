@@ -27,7 +27,7 @@ namespace Forte.Functions.Testable.Tests.InMemoryOrchestration
 
             Assert.AreEqual(OrchestrationRuntimeStatus.Running, status.RuntimeStatus);
 
-            await client.RaiseEventAsync(instanceId, Funcs.ExternalEventName);
+            await client.RaiseEventAsync(instanceId, Funcs.ExternalEventName, null);
 
             await client.WaitForOrchestrationToReachStatus(instanceId, OrchestrationRuntimeStatus.Completed);
 

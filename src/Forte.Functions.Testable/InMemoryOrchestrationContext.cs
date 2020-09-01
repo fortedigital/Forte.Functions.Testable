@@ -34,6 +34,11 @@ namespace Forte.Functions.Testable
         public OrchestrationRuntimeStatus Status { get; private set; } = OrchestrationRuntimeStatus.Pending;
         public DateTime CreatedTime { get; private set; }
         public IList<HistoryEvent> History { get; } = new List<HistoryEvent>();
+        public TEntityInterface CreateEntityProxy<TEntityInterface>(EntityId entityId)
+        {
+            throw new NotImplementedException();
+        }
+
         public string Name => _orchestratorFunctionName;
 
         public InMemoryOrchestrationContext(string instanceId, string parentInstanceId, InMemoryOrchestrationClient client)
@@ -107,15 +112,26 @@ namespace Forte.Functions.Testable
             throw new NotImplementedException();
         }
 
-        public Task<TResult> CallEntityAsync<TResult>(EntityId entityId, string operationName, object operationInput)
-        {
-            throw new NotImplementedException();
-        }
+        public Task<TResult> CallEntityAsync<TResult>(EntityId entityId, string operationName) => throw new NotImplementedException();
 
-        public Task CallEntityAsync(EntityId entityId, string operationName, object operationInput)
-        {
-            throw new NotImplementedException();
-        }
+        public Task CallEntityAsync(EntityId entityId, string operationName) => throw new NotImplementedException();
+
+        public Task<TResult> CallEntityAsync<TResult>(
+            EntityId entityId,
+            string operationName,
+            object operationInput) => throw new NotImplementedException();
+
+        public Task CallEntityAsync(EntityId entityId, string operationName, object operationInput) 
+            => throw new NotImplementedException();
+
+        public Task CallSubOrchestratorAsync(string functionName, object input) =>
+            CallSubOrchestratorAsync<object>(functionName, null, input);
+
+        public Task CallSubOrchestratorAsync(string functionName, string instanceId, object input)
+            => CallSubOrchestratorAsync<object>(functionName, instanceId, input);
+
+        public Task<TResult> CallSubOrchestratorAsync<TResult>(string functionName, object input) =>
+            CallSubOrchestratorAsync<TResult>(functionName, null, input);
 
         public async Task<TResult> CallSubOrchestratorAsync<TResult>(string functionName, string instanceId, object input)
         {
@@ -140,6 +156,20 @@ namespace Forte.Functions.Testable
                 throw;
             }
         }
+
+        public Task CallSubOrchestratorWithRetryAsync(
+            string functionName,
+            RetryOptions retryOptions,
+            object input) => CallSubOrchestratorWithRetryAsync<object>(functionName, retryOptions, null, input);
+
+        public Task CallSubOrchestratorWithRetryAsync(
+            string functionName,
+            RetryOptions retryOptions,
+            string instanceId,
+            object input) => CallSubOrchestratorWithRetryAsync<object>(functionName, retryOptions, instanceId, input);
+
+        public Task<TResult> CallSubOrchestratorWithRetryAsync<TResult>(string functionName, RetryOptions retryOptions, object input) =>
+            CallSubOrchestratorWithRetryAsync<TResult>(functionName, retryOptions, null, input);
 
         public Task<TResult> CallSubOrchestratorWithRetryAsync<TResult>(string functionName, RetryOptions retryOptions, string instanceId,
             object input)
@@ -171,6 +201,7 @@ namespace Forte.Functions.Testable
             }
         }
 
+        public Task CreateTimer(DateTime fireAt, CancellationToken cancelToken) => CreateTimer<object>(fireAt, null, CancellationToken.None);
         public async Task<T> CreateTimer<T>(DateTime fireAt, T state, CancellationToken cancelToken)
         {
             var timerCreated = new TimerCreatedEvent(History.Count);
@@ -249,6 +280,16 @@ namespace Forte.Functions.Testable
         public Task<T> WaitForExternalEvent<T>(string name)
         {
             return WaitForExternalEvent<T>(name, TimeSpan.FromDays(7), default, CancellationToken.None);
+        }
+
+        public Task WaitForExternalEvent(string name)
+        {
+            return WaitForExternalEvent<object>(name, TimeSpan.FromDays(7), default, CancellationToken.None);
+        }
+
+        public Task WaitForExternalEvent(string name, TimeSpan timeout, CancellationToken cancelToken = new CancellationToken())
+        {
+            return WaitForExternalEvent<object>(name, timeout, default, cancelToken);
         }
 
         public Task<T> WaitForExternalEvent<T>(string name, TimeSpan timeout, CancellationToken cancelToken)
@@ -348,10 +389,18 @@ namespace Forte.Functions.Testable
             }
         }
 
+        public Task CallActivityAsync(string functionName, object input) => CallActivityAsync<object>(functionName, input);
+
         public Task<TResult> CallActivityWithRetryAsync<TResult>(string functionName, Microsoft.Azure.WebJobs.Extensions.DurableTask.RetryOptions retryOptions, object input)
         {
             var firstAttempt = CurrentUtcDateTime;
             return CallActivityWithRetryAsync<TResult>(functionName, retryOptions, input, firstAttempt, 1);
+        }
+
+        public Task CallActivityWithRetryAsync(string functionName, RetryOptions retryOptions, object input)
+        {
+            var firstAttempt = CurrentUtcDateTime;
+            return CallActivityWithRetryAsync<object>(functionName, retryOptions, input, firstAttempt, 1);
         }
 
         async Task<TResult> CallActivityWithRetryAsync<TResult>(string functionName, RetryOptions retryOptions, object input, DateTime firstAttempt, int attempt)
@@ -415,6 +464,15 @@ namespace Forte.Functions.Testable
         }
 
         public string StartNewOrchestration(string functionName, object input, string instanceId = null)
+        {
+            if (string.IsNullOrEmpty(instanceId)) instanceId = "imoc-instance_" + Guid.NewGuid();
+
+            _client.StartNewAsync(instanceId, instanceId, input);
+            
+            return instanceId;
+        }
+
+        public TEntityInterface CreateEntityProxy<TEntityInterface>(string entityKey)
         {
             throw new NotImplementedException();
         }

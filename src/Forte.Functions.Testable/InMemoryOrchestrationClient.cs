@@ -51,8 +51,8 @@ namespace Forte.Functions.Testable
             return new HttpManagementPayload();
         }
 
-        public async Task<HttpResponseMessage> WaitForCompletionOrCreateCheckStatusResponseAsync(HttpRequestMessage request, string instanceId, TimeSpan timeout,
-            TimeSpan retryInterval)
+        public async Task<HttpResponseMessage> WaitForCompletionOrCreateCheckStatusResponseAsync(HttpRequestMessage request, string instanceId, TimeSpan? timeout,
+            TimeSpan? retryInterval)
         {
             try
             {
@@ -67,11 +67,16 @@ namespace Forte.Functions.Testable
 
         readonly ConcurrentDictionary<string, InMemoryOrchestrationContext> _instances = new ConcurrentDictionary<string, InMemoryOrchestrationContext>();
 
-        public Task<IActionResult> WaitForCompletionOrCreateCheckStatusResponseAsync(HttpRequest request, string instanceId, TimeSpan timeout,
-            TimeSpan retryInterval)
+        public Task<IActionResult> WaitForCompletionOrCreateCheckStatusResponseAsync(HttpRequest request, string instanceId, TimeSpan? timeout,
+            TimeSpan? retryInterval)
         {
             throw new NotImplementedException();
         }
+
+
+        public Task<string> StartNewAsync(string orchestratorFunctionName, string instanceId) => StartNewAsync<object>(orchestratorFunctionName, instanceId, null);
+
+        public Task<string> StartNewAsync<T>(string orchestratorFunctionName, T input) where T : class => StartNewAsync<T>(orchestratorFunctionName, null, input);
 
         public async Task<string> StartNewAsync<T>(string orchestratorFunctionName, string instanceId, T input)
         {
@@ -124,14 +129,7 @@ namespace Forte.Functions.Testable
 
         }
 
-        public Task<IList<DurableOrchestrationStatus>> GetStatusAsync(CancellationToken cancellationToken = new CancellationToken())
-        {
-            var list = _instances.ToList().Select(ToStatusObject).ToList();
-
-            return Task.FromResult((IList<DurableOrchestrationStatus>)list);
-        }
-
-        public Task<IList<DurableOrchestrationStatus>> GetStatusAsync(DateTime createdTimeFrom, DateTime? createdTimeTo, IEnumerable<OrchestrationRuntimeStatus> runtimeStatus,
+        public Task<IList<DurableOrchestrationStatus>> GetStatusAsync(DateTime? createdTimeFrom, DateTime? createdTimeTo, IEnumerable<OrchestrationRuntimeStatus> runtimeStatus,
             CancellationToken cancellationToken = new CancellationToken())
         {
             var list = _instances.Where(i =>
