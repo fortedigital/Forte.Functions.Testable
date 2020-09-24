@@ -7,7 +7,7 @@
     <Authors>Fredrik Kalseth</Authors>
     <Company>Forte Technology</Company>
     <Product />
-    <Version>2.0.2</Version>
+    <Version>2.0.3</Version>
     <PackageProjectUrl>https://github.com/fortedigital/Forte.Functions.Testable</PackageProjectUrl>
     <RepositoryUrl>https://github.com/fortedigital/Forte.Functions.Testable</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
@@ -16,6 +16,7 @@
     <FileVersion>2.0.1.0</FileVersion>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <Description>Changelog:
+2.0.3 Fixed bug in IDurableOrchestrationContext.StartNewOrchestration
 2.0.2 Updated for Microsoft.Azure.WebJobs.Extensions.DurableTask 2.3.0
 2.0.1
 Updated for altest DurableTask packages

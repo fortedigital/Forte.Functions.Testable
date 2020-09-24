@@ -467,7 +467,7 @@ namespace Forte.Functions.Testable
         {
             if (string.IsNullOrEmpty(instanceId)) instanceId = "imoc-instance_" + Guid.NewGuid();
 
-            _client.StartNewAsync(instanceId, instanceId, input);
+            _client.StartNewAsync(functionName, instanceId, input);
             
             return instanceId;
         }
