@@ -67,6 +67,7 @@ namespace Forte.Functions.Testable
 
         readonly ConcurrentDictionary<string, InMemoryOrchestrationContext> _instances = new ConcurrentDictionary<string, InMemoryOrchestrationContext>();
 
+
         public Task<IActionResult> WaitForCompletionOrCreateCheckStatusResponseAsync(HttpRequest request, string instanceId, TimeSpan? timeout,
             TimeSpan? retryInterval)
         {
@@ -236,6 +237,13 @@ namespace Forte.Functions.Testable
             if (!_instances.TryGetValue(instanceId, out var context)) throw new Exception("Timeshift found no instance with id " + instanceId);
 
             context.Timeshift(change);
+        }
+
+        internal Func<DurableHttpRequest, DurableHttpResponse> CallHttpHandler;
+
+        public void SetCallHttpHandler(Func<DurableHttpRequest, DurableHttpResponse> handler)
+        {
+            CallHttpHandler = handler;
         }
     }
 }

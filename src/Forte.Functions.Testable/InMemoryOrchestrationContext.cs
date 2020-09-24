@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
 using System.Reflection;
 using System.Threading;
@@ -102,14 +103,13 @@ namespace Forte.Functions.Testable
             _customStatus = customStatusObject;
         }
 
-        public Task<DurableHttpResponse> CallHttpAsync(HttpMethod method, Uri uri, string content = null)
-        {
-            throw new NotImplementedException();
-        }
+        public Task<DurableHttpResponse> CallHttpAsync(HttpMethod method, Uri uri, string content = null) =>
+            CallHttpAsync(new DurableHttpRequest(method, uri, content: content));
 
         public Task<DurableHttpResponse> CallHttpAsync(DurableHttpRequest req)
         {
-            throw new NotImplementedException();
+            var response = _client.CallHttpHandler?.Invoke(req) ?? new DurableHttpResponse(HttpStatusCode.OK);
+            return Task.FromResult(response);
         }
 
         public Task<TResult> CallEntityAsync<TResult>(EntityId entityId, string operationName) => throw new NotImplementedException();

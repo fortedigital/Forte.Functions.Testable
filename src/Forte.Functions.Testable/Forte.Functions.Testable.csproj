@@ -7,15 +7,16 @@
     <Authors>Fredrik Kalseth</Authors>
     <Company>Forte Technology</Company>
     <Product />
-    <Version>2.0.3</Version>
+    <Version>2.1</Version>
     <PackageProjectUrl>https://github.com/fortedigital/Forte.Functions.Testable</PackageProjectUrl>
     <RepositoryUrl>https://github.com/fortedigital/Forte.Functions.Testable</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageTags>azure functions azure-functions azure-functions-v2 durable-functions unit-testing</PackageTags>
-    <AssemblyVersion>2.0.1.0</AssemblyVersion>
-    <FileVersion>2.0.1.0</FileVersion>
+    <AssemblyVersion>2.1.0.0</AssemblyVersion>
+    <FileVersion>2.1.0.0</FileVersion>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <Description>Changelog:
+2.1 Added support for CallHttpAsync
 2.0.3 Fixed bug in IDurableOrchestrationContext.StartNewOrchestration
 2.0.2 Updated for Microsoft.Azure.WebJobs.Extensions.DurableTask 2.3.0
 2.0.1
