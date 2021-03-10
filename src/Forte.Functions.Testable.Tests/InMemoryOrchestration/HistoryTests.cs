@@ -53,6 +53,23 @@ namespace Forte.Functions.Testable.Tests.InMemoryOrchestration
             Assert.AreEqual(OrchestrationRuntimeStatus.Completed, status.RuntimeStatus);
         }
 
+        [TestMethod]
+        public async Task Adds_TaskFailed_history_event_for_unknown_orchestration_function()
+        {
+            var input = new TestFunctionInput();
+
+            var client = new InMemoryOrchestrationClient(typeof(Funcs).Assembly, _services);
+
+            var noSuchFuncName = "NoSuchFunction";
+
+            var instanceId = await client
+                .StartNewAsync(noSuchFuncName, input);
+
+            var status = await client.GetStatusAsync(instanceId);
+            
+            AssertHistoryEventOrder(status, EventType.ExecutionStarted, EventType.TaskFailed, EventType.ExecutionCompleted);
+        }
+
         private void AssertHistoryEventOrder(DurableOrchestrationStatus status, params EventType[] eventOrder)
         {
             TestUtil.LogHistory(status, Console.Out);

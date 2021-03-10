@@ -214,15 +214,19 @@ namespace Forte.Functions.Testable
             };
         }
 
-        public async Task<DurableOrchestrationStatus> WaitForOrchestrationToReachStatus(string instanceId, OrchestrationRuntimeStatus desiredStatus, TimeSpan? timeout = null)
+        public Task<DurableOrchestrationStatus> WaitForOrchestrationToReachStatus(string instanceId, OrchestrationRuntimeStatus desiredStatus, TimeSpan? timeout = null) => WaitForOrchestrationToReachStatus(instanceId, new[] {desiredStatus}, timeout);
+
+        public async Task<DurableOrchestrationStatus> WaitForOrchestrationToReachStatus(string instanceId,
+            OrchestrationRuntimeStatus[] desiredStatuses, TimeSpan? timeout = null)
         {
+
             if (!_instances.TryGetValue(instanceId, out var context)) throw new Exception("WaitForOrchestrationToReachStatus found no instance with id " + instanceId);
 
             var totalWait = TimeSpan.Zero;
             var maxWait = timeout ?? DefaultTimeout;
             TimeSpan wait = TimeSpan.FromMilliseconds(10);
 
-            while (context.Status != desiredStatus)
+            while (!desiredStatuses.Contains(context.Status))
             {
                 await Task.Delay(10);
                 totalWait = totalWait.Add(wait);
@@ -232,6 +236,19 @@ namespace Forte.Functions.Testable
 
             return ToStatusObject(new KeyValuePair<string, InMemoryOrchestrationContext>(instanceId, context));
         }
+
+        /// <summary>
+        /// Waits for the orchestration to finish either by completing, failing or being terminated.
+        /// </summary>
+        /// <param name="instanceId"></param>
+        /// <returns></returns>
+        public Task<DurableOrchestrationStatus> WaitForOrchestrationToFinish(string instanceId, TimeSpan? timeout = null) =>
+            WaitForOrchestrationToReachStatus(instanceId,
+                new[]
+                {
+                    OrchestrationRuntimeStatus.Completed, OrchestrationRuntimeStatus.Canceled,
+                    OrchestrationRuntimeStatus.Failed, OrchestrationRuntimeStatus.Terminated
+                }, timeout);
 
         public async Task WaitForOrchestrationToExpectEvent(string instanceId, string eventName, TimeSpan? timeout = null)
         {

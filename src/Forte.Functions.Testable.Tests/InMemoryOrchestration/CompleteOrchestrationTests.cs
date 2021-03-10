@@ -56,6 +56,34 @@ namespace Forte.Functions.Testable.Tests.InMemoryOrchestration
         }
 
         [TestMethod]
+        public async Task Can_WaitForOrchestrationToFinish_when_success()
+        {
+            var input = new TestFunctionInputAsync();
+
+            var client = new InMemoryOrchestrationClient(typeof(Funcs).Assembly, _services);
+            var instanceId = await client
+                .StartNewAsync(nameof(Funcs.DurableFunctionWithOneActivityAsync), input);
+
+            var status = await client.WaitForOrchestrationToFinish(instanceId);
+
+            Assert.AreEqual(OrchestrationRuntimeStatus.Completed, status.RuntimeStatus);
+        }
+
+        [TestMethod]
+        public async Task Can_WaitForOrchestrationToFinish_when_failed()
+        {
+            var input = new TestFunctionInputAsync();
+
+            var client = new InMemoryOrchestrationClient(typeof(Funcs).Assembly, _services);
+            var instanceId = await client
+                .StartNewAsync(nameof(Funcs.FailAtGivenCallNoActivity), input);
+
+            var status = await client.WaitForOrchestrationToFinish(instanceId);
+
+            Assert.AreEqual(OrchestrationRuntimeStatus.Failed, status.RuntimeStatus);
+        }
+
+        [TestMethod]
         public async Task Can_execute_durable_function_with_return()
         {
             var input = new TestFunctionInput();

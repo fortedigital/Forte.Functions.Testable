@@ -72,9 +72,10 @@ namespace Forte.Functions.Testable
                 History.Add(new ExecutionCompletedEvent(History.Count, JsonConvert.SerializeObject(_output), OrchestrationStatus.Completed));
             }
             catch (Exception ex)
-            {
+            {   
                 Status = OrchestrationRuntimeStatus.Failed;
-                History.Add(new ExecutionCompletedEvent(History.Count, JsonConvert.SerializeObject(ex), OrchestrationStatus.Failed));
+                History.Add(new TaskFailedEvent(History.Count, 0, ex.Message, ex.StackTrace));
+                History.Add(new ExecutionCompletedEvent(History.Count, null, OrchestrationStatus.Failed));
             }
         }
 
