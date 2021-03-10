@@ -7,7 +7,7 @@
     <Authors>Fredrik Kalseth</Authors>
     <Company>Forte Technology</Company>
     <Product />
-    <Version>2.1</Version>
+    <Version>2.2</Version>
     <PackageProjectUrl>https://github.com/fortedigital/Forte.Functions.Testable</PackageProjectUrl>
     <RepositoryUrl>https://github.com/fortedigital/Forte.Functions.Testable</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
@@ -15,20 +15,22 @@
     <AssemblyVersion>2.1.0.0</AssemblyVersion>
     <FileVersion>2.1.0.0</FileVersion>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <Description>Changelog:
-2.1 Added support for CallHttpAsync
-2.0.3 Fixed bug in IDurableOrchestrationContext.StartNewOrchestration
-2.0.2 Updated for Microsoft.Azure.WebJobs.Extensions.DurableTask 2.3.0
-2.0.1
-Updated for altest DurableTask packages
-2.0
-Durable Functions 2.0 support. No support for Durable Entities as of yet.</Description>
+    <Description>
+      Changelog:
+      2.2 Updated for Microsoft.Azure.DurableTask.Core 2.5.1
+      2.1 Added support for CallHttpAsync
+      2.0.3 Fixed bug in IDurableOrchestrationContext.StartNewOrchestration
+      2.0.2 Updated for Microsoft.Azure.WebJobs.Extensions.DurableTask 2.3.0
+      2.0.1
+      Updated for altest DurableTask packages
+      2.0
+      Durable Functions 2.0 support. No support for Durable Entities as of yet.</Description>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.Azure.DurableTask.Core" Version="2.4.1" />
-    <PackageReference Include="Microsoft.Azure.Functions.Extensions" Version="1.0.0" />
-    <PackageReference Include="Microsoft.Azure.WebJobs.Extensions.DurableTask" Version="2.3.0" />
+    <PackageReference Include="Microsoft.Azure.DurableTask.Core" Version="2.5.1" />
+    <PackageReference Include="Microsoft.Azure.Functions.Extensions" Version="1.1.0" />
+    <PackageReference Include="Microsoft.Azure.WebJobs.Extensions.DurableTask" Version="2.4.1" />
   </ItemGroup>
 
 </Project>

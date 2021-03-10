@@ -51,27 +51,33 @@ namespace Forte.Functions.Testable
             return new HttpManagementPayload();
         }
 
-        public async Task<HttpResponseMessage> WaitForCompletionOrCreateCheckStatusResponseAsync(HttpRequestMessage request, string instanceId, TimeSpan? timeout,
-            TimeSpan? retryInterval)
+        public Task<HttpResponseMessage> WaitForCompletionOrCreateCheckStatusResponseAsync(HttpRequestMessage request, string instanceId,
+            TimeSpan? timeout = null, TimeSpan? retryInterval = null, bool returnInternalServerErrorOnFailure = false)
         {
-            try
-            {
-                await WaitForOrchestrationToReachStatus(instanceId, OrchestrationRuntimeStatus.Completed, timeout);
-                return new HttpResponseMessage(HttpStatusCode.OK);
-            }
-            catch (TimeoutException)
-            {
-                return CreateCheckStatusResponse(request, instanceId);
-            }
+            return WaitForCompletionOrCreateCheckStatusResponseAsync(request, instanceId, timeout, null);
+        }
+
+        public Task<IActionResult> WaitForCompletionOrCreateCheckStatusResponseAsync(HttpRequest request, string instanceId, TimeSpan? timeout = null,
+            TimeSpan? retryInterval = null, bool returnInternalServerErrorOnFailure = false)
+        {
+            return WaitForCompletionOrCreateCheckStatusResponseAsync(request, instanceId, timeout, null);
         }
 
         readonly ConcurrentDictionary<string, InMemoryOrchestrationContext> _instances = new ConcurrentDictionary<string, InMemoryOrchestrationContext>();
 
 
-        public Task<IActionResult> WaitForCompletionOrCreateCheckStatusResponseAsync(HttpRequest request, string instanceId, TimeSpan? timeout,
+        public async Task<IActionResult> WaitForCompletionOrCreateCheckStatusResponseAsync(HttpRequest request, string instanceId, TimeSpan? timeout,
             TimeSpan? retryInterval)
         {
-            throw new NotImplementedException();
+            try
+            {
+                await WaitForOrchestrationToReachStatus(instanceId, OrchestrationRuntimeStatus.Completed, timeout);
+                return new OkResult();
+            }
+            catch (TimeoutException)
+            {
+                return CreateCheckStatusResponse(request, instanceId);
+            }
         }
 
 
@@ -164,6 +170,18 @@ namespace Forte.Functions.Testable
             {
                 DurableOrchestrationState = _instances.Select(ToStatusObject).ToArray()
             });
+        }
+
+        public async Task<string> RestartAsync(string instanceId, bool restartWithNewInstanceId = true)
+        {
+            if (!_instances.TryGetValue(instanceId, out var context))
+            {
+                throw new ArgumentException("No such instance");
+            }
+
+            await TerminateAsync(instanceId, "Restart");
+            return await StartNewAsync(context._orchestratorFunctionName, instanceId, context.Input);
+
         }
 
         public string TaskHubName { get; } = "testhub";

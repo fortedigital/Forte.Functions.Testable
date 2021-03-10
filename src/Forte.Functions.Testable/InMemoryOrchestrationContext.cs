@@ -26,7 +26,7 @@ namespace Forte.Functions.Testable
 
         private readonly string _instanceId;
         private readonly string _parentInstanceId;
-        private string _orchestratorFunctionName;
+        internal string _orchestratorFunctionName;
         private JToken _serializedInput = null;
         private object _output = null;
 
