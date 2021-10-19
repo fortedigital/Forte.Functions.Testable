@@ -280,5 +280,10 @@ namespace Forte.Functions.Testable
         {
             CallHttpHandler = handler;
         }
+
+        public Task MakeCurrentAppPrimaryAsync()
+        {
+            throw new NotImplementedException();
+        }
     }
 }
