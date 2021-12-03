@@ -1,3 +1,4 @@
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.DurableTask;
@@ -35,6 +36,19 @@ namespace Forte.Functions.Testable.Tests.InMemoryOrchestration.TestFunctions
         {
             return Task.FromResult("OK");
         }
+
+        [FunctionName(nameof(DurableFunctionWithCustomStatus))]
+        public static async Task DurableFunctionWithCustomStatus(
+            [OrchestrationTrigger] IDurableOrchestrationContext context)
+        {
+            context.SetCustomStatus(new CustomStatus());
+
+            await context.CreateTimer(context.CurrentUtcDateTime.AddDays(1), CancellationToken.None);
+        }
+    }
+
+    public class CustomStatus
+    {
     }
 
     public class TestFunctionInputAsync

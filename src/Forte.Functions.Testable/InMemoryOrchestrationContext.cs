@@ -104,8 +104,9 @@ namespace Forte.Functions.Testable
             _customStatus = customStatusObject;
         }
 
-        public Task<DurableHttpResponse> CallHttpAsync(HttpMethod method, Uri uri, string content = null) =>
-            CallHttpAsync(new DurableHttpRequest(method, uri, content: content));
+        public Task<DurableHttpResponse> CallHttpAsync(HttpMethod method, Uri uri, string content = null,
+            HttpRetryOptions retryOptions = null) =>
+            CallHttpAsync(new DurableHttpRequest(method, uri, content: content, httpRetryOptions: retryOptions));
 
         public Task<DurableHttpResponse> CallHttpAsync(DurableHttpRequest req)
         {
@@ -506,7 +507,7 @@ namespace Forte.Functions.Testable
 
             var context = reuseContext
                 ? (IInMemoryContextInput)this
-                : (IInMemoryContextInput)new InMemoryActivityContext(this, input);
+                : (IInMemoryContextInput)new InMemoryActivityContext(this, input, functionName);
 
             var parameters = ParametersForFunction(functionName, function, context).ToArray();
 

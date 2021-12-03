@@ -184,6 +184,11 @@ namespace Forte.Functions.Testable
 
         }
 
+        public Task MakeCurrentAppPrimaryAsync()
+        {
+            throw new NotImplementedException();
+        }
+
         public string TaskHubName { get; } = "testhub";
 
 
@@ -249,6 +254,34 @@ namespace Forte.Functions.Testable
                     OrchestrationRuntimeStatus.Completed, OrchestrationRuntimeStatus.Canceled,
                     OrchestrationRuntimeStatus.Failed, OrchestrationRuntimeStatus.Terminated
                 }, timeout);
+
+
+        /// <summary>
+        /// Waits for the orchestration CustomStatus property to match a given predicate
+        /// </summary>
+        /// <typeparam name="TStatus">The expected type of CustomStatus</typeparam>
+        /// <param name="instanceId">The orchestration to observe</param>
+        /// <param name="predicate">The predicate to match</param>
+        /// <param name="timeout">Timeout; if null, uses DefaultTimeout</param>
+        /// <returns></returns>
+        public async Task<DurableOrchestrationStatus> WaitForCustomStatus(string instanceId, Func<JToken, bool> predicate, TimeSpan? timeout = null)
+        {
+            if (!_instances.TryGetValue(instanceId, out var context)) throw new Exception("WaitForCustomStatus found no instance with id " + instanceId);
+
+            var totalWait = TimeSpan.Zero;
+            var maxWait = timeout ?? DefaultTimeout;
+            TimeSpan wait = TimeSpan.FromMilliseconds(10);
+
+            while (!predicate(context.CustomStatus == null ? null : JToken.FromObject(context.CustomStatus)))
+            {
+                await Task.Delay(10);
+                totalWait = totalWait.Add(wait);
+
+                if (totalWait > maxWait) throw new TimeoutException("WaitForCustomStatus exceeded max wait time of " + maxWait);
+            }
+
+            return ToStatusObject(new KeyValuePair<string, InMemoryOrchestrationContext>(instanceId, context));
+        }
 
         public async Task WaitForOrchestrationToExpectEvent(string instanceId, string eventName, TimeSpan? timeout = null)
         {

@@ -23,8 +23,9 @@ namespace Forte.Functions.Testable
             }
         }
 
-        public InMemoryActivityContext(IDurableOrchestrationContext parentContext, object input)
+        public InMemoryActivityContext(IDurableOrchestrationContext parentContext, object input, string name = null)
         {
+            Name = name;
             _parentContext = parentContext;
             Input = input;
         }
@@ -34,5 +35,7 @@ namespace Forte.Functions.Testable
         {
             return _serializedInput.ToObject<T>();
         }
+
+        public string Name { get; }
     }
 }
