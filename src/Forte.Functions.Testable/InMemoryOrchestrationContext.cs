@@ -588,5 +588,22 @@ namespace Forte.Functions.Testable
                 }
             }
         }
+
+        public void Suspend(string reason)
+        {
+            Status = OrchestrationRuntimeStatus.Suspended;
+            History.Add(new ExecutionSuspendedEvent(History.Count, reason));
+        }
+
+        public void Resume(string reason)
+        {
+            Status = OrchestrationRuntimeStatus.Pending;
+            History.Add(new ExecutionResumedEvent(History.Count, reason));
+        }
+
+        public void Rewind(string reason)
+        {
+            Status = OrchestrationRuntimeStatus.Running;
+        }
     }
 }

@@ -1,8 +1,8 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netcoreapp3.1</TargetFramework>
-    <LangVersion>7.1</LangVersion>
+    <TargetFramework>net6.0</TargetFramework>
+    <LangVersion>latest</LangVersion>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <Authors>Fredrik Kalseth</Authors>
     <Company>Forte Technology</Company>
@@ -12,11 +12,12 @@
     <RepositoryUrl>https://github.com/fortedigital/Forte.Functions.Testable</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageTags>azure functions azure-functions azure-functions-v2 durable-functions unit-testing</PackageTags>
-    <AssemblyVersion>2.5.0.0</AssemblyVersion>
-    <FileVersion>2.5.0.0</FileVersion>
+    <AssemblyVersion>2.6.0.0</AssemblyVersion>
+    <FileVersion>2.6.0.0</FileVersion>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <Description>
       Changelog:
+      2.6 Updated for Microsoft.Azure.DurableTask.Core 2.13.0 and Microsoft.Azure.WebJobs.Extensions.DurableTask 2.10.0
       2.5 Updated for Microsoft.Azure.DurableTask.Core 2.9.0 and Microsoft.Azure.WebJobs.Extensions.DurableTask 2.7.0
       2.4 Added WaitForCustomStatus(predicate). Updated for DurableTask.Core 2.6.0
       2.3 Added WaitForOrchestrationToReachStatus(status[]) and WaitForOrchestrationToFinish. Added TaskFailed history event to orchestration start failures.
@@ -31,9 +32,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.Azure.DurableTask.Core" Version="2.9.0" />
+    <PackageReference Include="Microsoft.Azure.DurableTask.Core" Version="2.13.0" />
     <PackageReference Include="Microsoft.Azure.Functions.Extensions" Version="1.1.0" />
-    <PackageReference Include="Microsoft.Azure.WebJobs.Extensions.DurableTask" Version="2.7.0" />
+    <PackageReference Include="Microsoft.Azure.WebJobs.Extensions.DurableTask" Version="2.10.0" />
   </ItemGroup>
 
 </Project>
