@@ -122,9 +122,31 @@ namespace Forte.Functions.Testable
             return Task.CompletedTask;
         }
 
+        public Task SuspendAsync(string instanceId, string reason)
+        {
+            if (_instances.TryGetValue(instanceId, out var instance))
+            {
+                instance.Suspend(reason);
+            }
+            return Task.CompletedTask;
+        }
+
+        public Task ResumeAsync(string instanceId, string reason)
+        {
+            if (_instances.TryGetValue(instanceId, out var instance))
+            {
+                instance.Resume(reason);
+            }
+            return Task.CompletedTask;
+        }
+
         public Task RewindAsync(string instanceId, string reason)
         {
-            throw new NotImplementedException();
+            if (_instances.TryGetValue(instanceId, out var instance))
+            {
+                instance.Rewind(reason);
+            }
+            return Task.CompletedTask;
         }
 
         public Task<DurableOrchestrationStatus> GetStatusAsync(string instanceId, bool showHistory = true, bool showHistoryOutput = true, bool showInput = true)
@@ -134,6 +156,18 @@ namespace Forte.Functions.Testable
 
             return Task.FromResult(ToStatusObject(new KeyValuePair<string, InMemoryOrchestrationContext>(instanceId, context)));
 
+        }
+
+        public Task<IList<DurableOrchestrationStatus>> GetStatusAsync(IEnumerable<string> instanceIds, bool showHistory = false, bool showHistoryOutput = false,
+            bool showInput = false)
+        {
+            var statuses =
+                instanceIds
+                    .Select(instanceId => GetStatusAsync(instanceId, showHistory, showHistoryOutput, showInput))
+                    .ToArray();
+            Task.WaitAll(statuses);
+            IList<DurableOrchestrationStatus> result = statuses.Select(status => status.Result).ToList();
+            return Task.FromResult(result);
         }
 
         public Task<IList<DurableOrchestrationStatus>> GetStatusAsync(DateTime? createdTimeFrom, DateTime? createdTimeTo, IEnumerable<OrchestrationRuntimeStatus> runtimeStatus,
@@ -150,6 +184,11 @@ namespace Forte.Functions.Testable
         }
 
         public Task<PurgeHistoryResult> PurgeInstanceHistoryAsync(string instanceId)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<PurgeHistoryResult> PurgeInstanceHistoryAsync(IEnumerable<string> instanceIds)
         {
             throw new NotImplementedException();
         }
